@@ -136,6 +136,7 @@ h2.sec{font-size:13px;color:var(--muted);margin:6px 2px -4px;font-weight:bold;le
 .tile.big{border-color:var(--green);min-height:120px}
 .tile.big .ic{font-size:32px}.tile.big b{font-size:15px}
 .tile:active{transform:translateY(1px)}
+.snd{margin-left:auto;font-size:22px;padding:4px 8px}
 .hidden{display:none!important}
 .fighters{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .fighter{background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:8px;font-size:12px}
@@ -201,7 +202,31 @@ const shuffle = a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor
 const yen = n=>n.toLocaleString("ja-JP")+"円";
 function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem("saize:"+k));localStorage.setItem("saize:"+k,JSON.stringify(v))}catch(e){return null}}
 function best(mode,score,higher=true){const b=store("best:"+mode);if(b==null||(higher?score>b:score<b)){store("best:"+mode,score);return true}return false}
-function fx(text,color){const el=$("#fx");el.textContent=text;el.style.color=color;el.classList.remove("show");void el.offsetWidth;el.classList.add("show")}
+/* ===== 効果音(Web Audioで合成。音声ファイルなし) ===== */
+let AC=null,MUTED=!!store("muted");
+function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(AC.state==="suspended")AC.resume();return AC}
+function tone(f,dur,{type="sine",vol=.18,at=0,slide=0}={}){const c=ac();if(!c||MUTED)return;const t=c.currentTime+at;
+  const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f+slide),t+dur);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g).connect(c.destination);o.start(t);o.stop(t+dur+.02)}
+function noise(dur,{vol=.15,at=0,hp=800}={}){const c=ac();if(!c||MUTED)return;const t=c.currentTime+at;const b=c.createBuffer(1,c.sampleRate*dur,c.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);const src=c.createBufferSource();src.buffer=b;const f=c.createBiquadFilter();f.type="highpass";f.frequency.value=hp;
+  const g=c.createGain();g.gain.value=vol;src.connect(f).connect(g).connect(c.destination);src.start(t)}
+const SFX={
+  tap:()=>tone(880,.05,{type:"triangle",vol:.08}),
+  ok:()=>{tone(988,.12,{type:"sine"});tone(1319,.22,{type:"sine",at:.08})},            // ピンポン
+  ng:()=>{tone(220,.18,{type:"square",vol:.1});tone(180,.25,{type:"square",vol:.1,at:.12})}, // ブブー
+  combo:()=>[1047,1319,1568,2093].forEach((f,i)=>tone(f,.12,{type:"triangle",vol:.12,at:i*.06})),
+  tick:()=>tone(1500,.03,{type:"square",vol:.05}),
+  cheers:()=>{tone(2637,.35,{vol:.1});tone(3136,.35,{vol:.08,at:.02});tone(2093,.4,{vol:.06,at:.05})}, // グラスの音
+  munch:()=>{noise(.07,{vol:.18,hp:1500});noise(.07,{vol:.15,hp:1200,at:.12})},           // もぐもぐ
+  hit:()=>{tone(300,.2,{type:"sawtooth",vol:.1,slide:-200})},
+  bell:()=>{tone(1568,.6,{vol:.12});tone(2093,.6,{vol:.06,at:.01})},                       // 呼び出しベル
+  win:()=>[523,659,784,1047,784,1047].forEach((f,i)=>tone(f,.18,{type:"triangle",vol:.14,at:i*.11})),
+  lose:()=>[392,349,330,262].forEach((f,i)=>tone(f,.28,{type:"triangle",vol:.12,at:i*.2})),
+  cart:()=>{tone(660,.08,{type:"triangle",vol:.1});tone(990,.12,{type:"triangle",vol:.1,at:.07})},
+};
+function play(n){try{SFX[n]&&SFX[n]()}catch(e){}}
+function fx(text,color,snd){play(snd||(color.includes("green")?"ok":"ng"));const el=$("#fx");el.textContent=text;el.style.color=color;el.classList.remove("show");void el.offsetWidth;el.classList.add("show")}
 function buzz(ms){try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}}
 let timers=[];function clearTimers(){timers.forEach(t=>{clearInterval(t);clearTimeout(t)});timers=[];window.onkeydown=null}
 function every(fn,ms){const t=setInterval(fn,ms);timers.push(t);return t}
@@ -250,13 +275,13 @@ function orderPad(onSubmit,{len=4,confirm=false}={}){
     qbox._draw=drawQ;drawQ()};
   const act=a=>{
     if(a==="next"){if(buf.length<len)return;if(confirm){if(item(buf))toQty()}else send()}
-    else if(a==="minus"){qty=Math.max(1,qty-1);qbox._draw()}
-    else if(a==="plus"){qty=Math.min(9,qty+1);qbox._draw()}
-    else if(a==="add")send();
+    else if(a==="minus"){play("tap");qty=Math.max(1,qty-1);qbox._draw()}
+    else if(a==="plus"){play("tap");qty=Math.min(9,qty+1);qbox._draw()}
+    else if(a==="add"){play("cart");send()}
     else if(a==="back")reset();
   };
   const press=k=>{
-    if(step!=="num")return;
+    if(step!=="num")return;play("tap");
     if(k==="del")buf=buf.slice(0,-1);else if(k==="clr")buf="";
     else if(buf.length<len)buf+=k;
     draw();
@@ -387,7 +412,7 @@ function learnTest(){
   }
   show();
   function end(){
-    const perfect=score===N;if(perfect){const c=store("cleared")||{};c[THEME.id]=1;store("cleared",c)}
+    const perfect=score===N;play(perfect?"win":"bell");if(perfect){const c=store("cleared")||{};c[THEME.id]=1;store("cleared",c)}
     const text=encodeURIComponent(`サイゼ番号テスト「${THEME.name}」${N}問中${score}問正解${perfect?"👑":""}\n#サイゼ注文マスター`);
     clearTimers();
     app.innerHTML=`<div class="flag"></div><div class="card result"><div class="muted">${THEME.icon} ${THEME.name} テスト</div>
@@ -418,7 +443,7 @@ function home(){
   const tile=(id,big)=>{const m=MODES.find(x=>x.id===id),bt=bestText(m);return `<button class="tile ${big?"big":""}" data-m="${id}">
     <span class="ic">${ICON[id]}</span><b>${m.name}</b><small>${SHORT[id]}</small>${bt?`<em>ベスト ${bt}</em>`:""}</button>`};
   app.innerHTML=`<div class="flag"></div>
-  <header class="top"><h1>サイゼ注文マスター</h1><span class="tag">非公式</span></header>
+  <header class="top"><h1>サイゼ注文マスター</h1><span class="tag">非公式</span><button class="snd" id="snd" aria-label="効果音">${MUTED?"🔇":"🔊"}</button></header>
   <section class="hero">
     <div class="ring" style="--p:${pct}"><div><b>${n}</b><small>/${MENU.length}品</small></div></div>
     <div class="hero-r"><div class="muted">${n===0?"はじめての人は、まず番号をおぼえよう":n<MENU.length?"覚えた番号":"全品の番号を覚えました!"}</div>
@@ -432,6 +457,7 @@ function home(){
   <footer>メニュー名・番号・価格は株式会社サイゼリヤ公式サイトの掲載情報(${MENU_AS_OF})より。価格は税込の最低価格で、店舗や改定で変わります。<br>本作は非公式のファンゲームで、株式会社サイゼリヤとは関係ありません。</footer>`;
   app.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>({rush,budget,reverse,group,dessert,hilo,battle})[b.dataset.m]());
   $("#book").onclick=book;$("#learn").onclick=learn;
+  $("#snd").onclick=()=>{MUTED=!MUTED;store("muted",MUTED);$("#snd").textContent=MUTED?"🔇":"🔊";if(!MUTED)play("bell")};
 }
 function book(){
   clearTimers();
@@ -442,6 +468,7 @@ function book(){
   $("#back").onclick=home;
 }
 function resultView({mode,score,label,lines=[],shareText,isBest,title}){
+  play(String(score).includes("負け")?"lose":"win");
   clearTimers();
   const text=encodeURIComponent(shareText+"\n#サイゼ注文マスター");
   app.innerHTML=`<div class="flag"></div><div class="card result">
@@ -467,11 +494,11 @@ function rush(){
     <div class="card"><div class="customer" id="cu"></div><div class="ask" id="ask"></div><div class="muted" id="combo">&nbsp;</div></div><div id="padw"></div>`;
   bindQuit();
   const next=()=>{do q=rnd(MENU);while(q===last);last=q;$("#cu").textContent=rnd(CUSTOMERS)+"のご注文";$("#ask").textContent=say(q)};
-  const draw=()=>{$("#tm").textContent=t.toFixed(1)+"秒";$("#sc").textContent=score+"品";const bar=$("#bar");bar.firstChild.style.width=Math.min(100,t/MAX*100)+"%";bar.classList.toggle("low",t<8)};
+  const draw=()=>{$("#tm").textContent=t.toFixed(1)+"秒";$("#sc").textContent=score+"品";const bar=$("#bar");bar.firstChild.style.width=Math.min(100,t/MAX*100)+"%";bar.classList.toggle("low",t<8);const sec=Math.ceil(t);if(t<5&&sec!==draw.last){draw.last=sec;play("tick")}};
   $("#padw").appendChild(orderPad(v=>{
     if(v===q.code){score++;combo++;maxCombo=Math.max(maxCombo,combo);
       let add=1.5+(combo%5===0?3:0);t=Math.min(MAX,t+add);
-      fx(combo>=3?`${combo}連続! +${add}秒`:"ありがとうございます!","var(--green)");buzz(15);
+      fx(combo>=3?`${combo}連続! +${add}秒`:"ありがとうございます!","var(--green)",combo%5===0?"combo":"ok");buzz(15);
       $("#combo").textContent=combo>=2?`${combo}連続注文中 ${5-combo%5}品であとボーナス+3秒`:" ";
     }else{combo=0;t-=5;miss.push(q);fx("−5秒","var(--red)");buzz([40,40,40]);
       $("#ask").classList.add("shake");later(()=>$("#ask").classList.remove("shake"),350);
@@ -663,7 +690,7 @@ function fight(R){
     const idx=hand.findIndex(m=>m.code===v);
     if(idx>=0){const m=hand[idx],e=effect(m);sent++;
       if(e.self){apply(me,m);$("#log").textContent="ドリンクバーで少し酔いがさめた";fx("ふぅ…","var(--green)")}
-      else{apply(cpu,m,R.drunkRes||1);flash("#fcpu");$("#log").textContent=`${R.name}に「${m.name}」をお届け!`;fx(/^340/.test(m.code)?"かんぱーい!":"お待たせしました!","var(--green)")}
+      else{apply(cpu,m,R.drunkRes||1);flash("#fcpu");$("#log").textContent=`${R.name}に「${m.name}」をお届け!`;fx(/^340/.test(m.code)?"かんぱーい!":"お待たせしました!","var(--green)",/^340/.test(m.code)?"cheers":"munch")}
       buzz(15);hand[idx]=deal();
     }else{apply(me,MENU.find(x=>x.code==="2101"));flash("#fme");
       $("#log").textContent="手札にない番号…まちがって届いたミラノ風ドリアを自分で食べることに";
@@ -674,7 +701,7 @@ function fight(R){
     const choices=R.noDrink?pool().filter(m=>m.code!=="5101"):MENU;
     let m=rnd(choices);if(cpu.drunk>=60&&Math.random()<.5)m=MENU.find(x=>x.code==="5101");
     if(m.code==="5101"){apply(cpu,m);$("#log").textContent=`${R.name}はドリンクバーで酔いざまし中`}
-    else{apply(me,m);flash("#fme");$("#log").textContent=`${R.name}から「${m.name}」が届いた!`;buzz(30)}
+    else{apply(me,m);flash("#fme");$("#log").textContent=`${R.name}から「${m.name}」が届いた!`;play(/^340/.test(m.code)?"cheers":"hit");buzz(30)}
     scramble();draw();check();
     const slow=cpu.drunk>=50?1.5:1;later(cpuTurn,R.speed*slow*(.8+Math.random()*.4));};
   later(cpuTurn,R.speed+800);
