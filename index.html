@@ -80,25 +80,29 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 .vs button{background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:16px 8px;font-weight:bold;font-size:15px;min-height:96px;box-shadow:var(--shadow)}
 .vs .mid{align-self:center;font-weight:900;color:var(--muted)}
 
-/* 注文画面ふう入力 */
-.op{background:var(--paper);border-radius:18px 18px 12px 12px;box-shadow:0 -2px 12px rgba(0,0,0,.08);padding:12px;display:flex;flex-direction:column;gap:10px}
-.op-field{text-align:center}
-.op-label{font-size:12px;color:var(--muted);margin-bottom:6px}
-.op-num{display:flex;gap:10px;justify-content:center}
-.op-num span{width:48px;height:56px;border-bottom:3px solid var(--line);display:flex;align-items:center;justify-content:center;font:bold 34px ui-rounded,"Hiragino Maru Gothic ProN",system-ui,sans-serif}
-.op-num span.cur{border-color:var(--green)}
-.op-preview{min-height:56px;display:flex;align-items:center;justify-content:center}
-.op-hint{font-size:13px;color:var(--muted)}
-.op-hint.err{color:var(--red);font-weight:bold}
-.op-item{width:100%;display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:12px;padding:10px 12px}
-.op-item.sm{justify-content:center}
-.op-item div{flex:1;display:flex;flex-direction:column;gap:2px;text-align:left}
-.op-item b{font-size:15px}.op-item small{font-size:11px;color:var(--red);font-weight:normal;margin-left:4px}
-.op-item span{font-size:13px;color:var(--muted)}
-.op-add{background:var(--green);color:#fff;border-radius:999px;padding:10px 14px;font-weight:bold;font-size:14px;white-space:nowrap}
-.op .pad button{background:var(--bg);border:none;border-radius:14px;height:54px;font-size:24px;font-weight:600;box-shadow:none}
-.op .pad button:active{background:var(--line)}
-.op .pad .del,.op .pad .clr{font-size:15px;color:var(--muted)}
+/* セルフオーダーふう入力(白基調・シンプル) */
+.so{background:#fff;color:#222;border:1px solid #ddd;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.so-top{min-height:64px;display:flex;align-items:center;justify-content:center;padding:10px 14px;border-bottom:1px solid #eee;text-align:center}
+.so-guide{font-size:14px;color:#555}.so-guide.err{color:#d0021b;font-weight:bold}
+.so-name{font-size:19px;font-weight:bold;line-height:1.3}.so-name small{display:block;font-size:11px;color:#d0021b;font-weight:normal}
+.so-body{padding:12px;display:flex;flex-direction:column;gap:10px}
+.so-num{display:flex;justify-content:center;gap:0;border:1px solid #ccc;border-radius:8px;height:56px;align-items:center;background:#fafafa}
+.so-num span{width:44px;text-align:center;font:600 30px system-ui,-apple-system,"Hiragino Sans",sans-serif;letter-spacing:0}
+.so-num span.cur::after{content:"";display:inline-block;width:2px;height:28px;background:#999;vertical-align:middle;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.so .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid #e5e5e5;border-left:1px solid #e5e5e5}
+.so .pad button{background:#fff;color:#222;border:none;border-right:1px solid #e5e5e5;border-bottom:1px solid #e5e5e5;border-radius:0;height:58px;font:500 26px system-ui,-apple-system,"Hiragino Sans",sans-serif;box-shadow:none}
+.so .pad button:active{background:#eee}
+.so .pad .fn{font-size:14px;color:#555;background:#f5f5f5}
+.so-next{background:#d0021b;color:#fff;border-radius:8px;height:50px;font-size:16px;font-weight:bold;width:100%}
+.so-next:disabled{background:#ccc;color:#fff}
+.so-qty{padding:14px 12px;display:flex;flex-direction:column;gap:12px;align-items:center}
+.so-price{color:#555;font-size:14px}
+.so-step{display:flex;align-items:center;gap:24px}.so-step button{width:48px;height:48px;border:1px solid #ccc;border-radius:50%;font-size:24px;background:#fff;color:#222}.so-step b{font-size:28px;min-width:1.5em;text-align:center}
+.so-back{color:#555;font-size:13px;text-decoration:underline}
+.so-bar{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #ddd;background:#f7f7f7;font-size:12px;color:#444;text-align:center}
+.so-bar span{padding:10px 4px;border-right:1px solid #e5e5e5}.so-bar span:last-child{border-right:none}
+.so-cart b{color:#d0021b}
 /* 学習 */
 .prog{height:12px;background:var(--line);border-radius:6px;overflow:hidden}.prog i{display:block;height:100%;background:var(--gold)}
 .flash{min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;cursor:pointer}
@@ -125,7 +129,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 .hand{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .hand div{background:var(--paper);border:2px dashed var(--line);border-radius:10px;padding:8px 4px;text-align:center;font-size:13px;font-weight:bold;min-height:64px;display:flex;flex-direction:column;justify-content:center}
 .hand div small{font-weight:normal;color:var(--muted);font-size:11px}
-.blur .op-num,.blur .hand{filter:blur(1.2px)}
+.blur .so-num,.blur .hand{filter:blur(1.2px)}
 .log{font-size:12px;color:var(--muted);min-height:1.5em;text-align:center}
 footer{font-size:11px;color:var(--muted);text-align:center;line-height:1.6}
 </style>
@@ -192,37 +196,55 @@ const titleOf=s=>TITLES.filter(t=>s>=t[0]).pop()[1];
 
 /* ===== 4桁入力パッド(共通) ===== */
 function orderPad(onSubmit,{len=4,confirm=false}={}){
-  /* スマホ注文画面ふうの番号入力。confirm:true なら商品確認→「カートに入れる」で確定、
-     false なら4けた入力で自動送信(時間制限のあるモード用) */
-  let buf="",locked=false;
-  const wrap=document.createElement("div");wrap.className="op";
-  wrap.innerHTML=`<div class="op-field"><div class="op-label">メニュー番号を入力</div>
-    <div class="op-num">${"<span></span>".repeat(len)}</div></div>
-    <div class="op-preview"></div>
-    <div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-k="${n}">${n}</button>`).join("")}
-    <button class="del" data-k="del">⌫</button><button data-k="0">0</button><button class="clr" data-k="clr">クリア</button></div>`;
-  const cells=[...wrap.querySelectorAll(".op-num span")],pv=wrap.querySelector(".op-preview");
+  /* スマホのセルフオーダー画面の流れを参考にした番号入力(非公式・見た目は独自)
+     番号4けた → 上に商品名 → 「次へ進む」。confirm:true なら数量 → 「注文かごへ追加する」まで */
+  let buf="",step="num",qty=1,cart=0;
+  const wrap=document.createElement("div");wrap.className="so";
   const item=c=>MENU.find(m=>m.code===c)||MENU.find(m=>m.later===c);
-  const preview=()=>{
-    if(buf.length<len){pv.innerHTML=`<div class="op-hint">${buf.length?"あと"+(len-buf.length)+"けた":"4けたの番号を入力してください"}</div>`;return}
-    const m=item(buf);
-    if(!confirm){pv.innerHTML=m?`<div class="op-item sm"><b>${m.name}${m.later===buf?"(あとで)":""}</b></div>`:`<div class="op-hint err">該当する商品がありません</div>`;return}
-    pv.innerHTML=m?`<div class="op-item"><div><b>${m.name}${m.later===buf?"<small>(食後にお持ちします)</small>":""}</b><span>${m.price?yen(m.price)+"〜(税込)":""}</span></div>
-      <button class="op-add" data-k="ok">カートに入れる</button></div>`:`<div class="op-hint err">該当する商品がありません。番号をご確認ください</div>`;
-    const add=pv.querySelector(".op-add");if(add)add.addEventListener("pointerdown",e=>{e.preventDefault();press("ok")});
+  wrap.innerHTML=`<div class="so-top"></div>
+    <div class="so-body">
+      <div class="so-num"></div>
+      <div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-k="${n}">${n}</button>`).join("")}
+      <button class="fn" data-k="clr">クリア</button><button data-k="0">0</button><button class="fn" data-k="del">削除</button></div>
+      <button class="so-next" data-act="next" disabled>次へ進む</button>
+    </div>
+    <div class="so-qty hidden"></div>
+    <div class="so-bar"><span>注文追加</span><span class="so-cart">注文かご <b>0</b></span><span>会計する</span></div>`;
+  const top=wrap.querySelector(".so-top"),num=wrap.querySelector(".so-num"),next=wrap.querySelector(".so-next"),
+        body=wrap.querySelector(".so-body"),qbox=wrap.querySelector(".so-qty"),cartEl=wrap.querySelector(".so-cart b");
+  const draw=()=>{
+    const m=buf.length===len?item(buf):null;
+    if(buf.length<len)top.innerHTML=`<div class="so-guide">メニューブックから番号を入力してください</div>`;
+    else top.innerHTML=m?`<div class="so-name">${m.name}${m.later===buf?'<small>食後にお持ちします</small>':""}</div>`:`<div class="so-guide err">該当する商品がありません</div>`;
+    num.innerHTML=[...Array(len)].map((_,i)=>`<span class="${i===buf.length?"cur":""}">${buf[i]||""}</span>`).join("");
+    next.disabled=buf.length<len||(confirm&&!m);
   };
-  const draw=()=>{cells.forEach((c,i)=>{c.textContent=buf[i]||"";c.classList.toggle("cur",i===buf.length)});preview()};
-  const submit=()=>{const v=buf;buf="";draw();onSubmit(v)};
+  const reset=()=>{buf="";qty=1;step="num";body.classList.remove("hidden");qbox.classList.add("hidden");draw()};
+  const send=()=>{const v=buf;cart+=confirm?qty:1;cartEl.textContent=cart;const q=qty;reset();onSubmit(v,q)};
+  const toQty=()=>{const m=item(buf);step="qty";body.classList.add("hidden");qbox.classList.remove("hidden");
+    top.innerHTML=`<div class="so-name">${m.name}${m.later===buf?'<small>食後にお持ちします</small>':""}</div>`;
+    const drawQ=()=>{qbox.innerHTML=`<div class="so-price">${m.price?yen(m.price)+"〜(税込)":""}</div>
+      <div class="so-step"><button data-act="minus">−</button><b>${qty}</b><button data-act="plus">+</button></div>
+      <button class="so-next" data-act="add">注文かごへ追加する</button><button class="so-back" data-act="back">番号入力にもどる</button>`;
+      qbox.querySelectorAll("[data-act]").forEach(b=>b.addEventListener("pointerdown",e=>{e.preventDefault();act(b.dataset.act)}))};
+    qbox._draw=drawQ;drawQ()};
+  const act=a=>{
+    if(a==="next"){if(buf.length<len)return;if(confirm){if(item(buf))toQty()}else send()}
+    else if(a==="minus"){qty=Math.max(1,qty-1);qbox._draw()}
+    else if(a==="plus"){qty=Math.min(9,qty+1);qbox._draw()}
+    else if(a==="add")send();
+    else if(a==="back")reset();
+  };
   const press=k=>{
-    if(locked)return;
-    if(k==="del")buf=buf.slice(0,-1);
-    else if(k==="clr")buf="";
-    else if(k==="ok"){if(buf.length===len)submit();return}
-    else if(buf.length<len){buf+=k;if(buf.length===len&&!confirm){draw();locked=true;later(()=>{locked=false;submit()},180);return}}
+    if(step!=="num")return;
+    if(k==="del")buf=buf.slice(0,-1);else if(k==="clr")buf="";
+    else if(buf.length<len)buf+=k;
     draw();
   };
   wrap.querySelectorAll(".pad [data-k]").forEach(b=>b.addEventListener("pointerdown",e=>{e.preventDefault();press(b.dataset.k)}));
-  window.onkeydown=e=>{if(/^[0-9]$/.test(e.key))press(e.key);else if(e.key==="Backspace")press("del");else if(e.key==="Enter")press("ok")};
+  next.addEventListener("pointerdown",e=>{e.preventDefault();act("next")});
+  window.onkeydown=e=>{if(/^[0-9]$/.test(e.key))press(e.key);else if(e.key==="Backspace")press("del");
+    else if(e.key==="Enter"){step==="qty"?act("add"):act("next")}};
   draw();
   return wrap;
 }
@@ -447,7 +469,7 @@ function budget(){
   bindQuit();
   const sum=()=>order.reduce((a,m)=>a+m.price,0);
   const draw=()=>{$("#ls").innerHTML=order.map(m=>`<div><code>${m.code}</code><span>${m.name}</span><span>${yen(m.price)}</span></div>`).join("")||"<div class='muted'>まだ何も書いていません</div>";const s=sum();$("#tot").textContent=yen(s);$("#tot").style.color=s>target?"var(--red)":s===target?"var(--green)":""};
-  $("#padw").appendChild(orderPad(v=>{const m=PRICED.find(x=>x.code===v);if(!m){fx("その番号はありません","var(--red)");buzz([40,40]);return}order.push(m);draw();buzz(10);fx("カートに追加","var(--green)")},{confirm:true}));
+  $("#padw").appendChild(orderPad((v,qn=1)=>{const m=PRICED.find(x=>x.code===v);if(!m){fx("その番号はありません","var(--red)");buzz([40,40]);return}for(let k=0;k<qn;k++)order.push(m);draw();buzz(10);fx("カートに追加","var(--green)")},{confirm:true}));
   $("#undo").onclick=()=>{order.pop();draw()};
   $("#pay").onclick=end;
   $("#peek").onclick=()=>{t-=10;$("#peek").remove();$("#peekw").innerHTML=`<div class="card book">${PRICED.map(m=>`<div class="it"><code>${m.code}</code><span>${m.name}</span><span class="p">${yen(m.price)}</span></div>`).join("")}</div>`};
