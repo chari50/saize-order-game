@@ -201,7 +201,14 @@ const MENU = [
   {code:"3206",name:"イタリアンプリン",price:270,cat:"デザート",later:"3906"},
   {code:"3401",name:"グラスワイン(赤)",price:100,cat:"ワイン・ドリンク"},
   {code:"3402",name:"グラスワイン(白)",price:100,cat:"ワイン・ドリンク"},
+  {code:"3412",name:"ランブルスコ ロゼ(ボトル)",price:1200,cat:"ワイン・ドリンク"},
+  {code:"3413",name:"ドンラファエロ(ボトル)",price:1200,cat:"ワイン・ドリンク"},
+  {code:"3414",name:"ランブルスコ セッコ(ボトル)",price:1200,cat:"ワイン・ドリンク"},
+  {code:"3415",name:"ベルデッキオ(ボトル)",price:1200,cat:"ワイン・ドリンク"},
+  {code:"3416",name:"キャンティ(ボトル)",price:1200,cat:"ワイン・ドリンク"},
+  {code:"3419",name:"キャンティ ルフィナ(ボトル)",price:2400,cat:"ワイン・ドリンク"},
   {code:"5101",name:"セットドリンクバー",price:210,cat:"ワイン・ドリンク"},
+  {code:"5103",name:"ドリンクバー(単品)",price:null,cat:"ワイン・ドリンク"},
 ];
 const PRICED = MENU.filter(m=>m.price);
 
@@ -697,7 +704,7 @@ function hilo(){
 /* ===== 7. 酔わせて満腹バトル =====
  ゲーム上の数値(満腹・酔い)は遊び用の設定で、実際の量やカロリーではない */
 const FULL={"サラダ":8,"スープ":10,"前菜・おつまみ":12,"ドリア":22,"ピザ":24,"パスタ":26,"肉料理":30,"デザート":6};
-const effect=m=>m.code==="5101"?{self:true,drunk:-30,full:5,label:"ドリンクバーで酔いざまし"}:/^340/.test(m.code)?{drunk:20,full:2,label:"🍷 酔い+20"}:{full:FULL[m.cat]||10,label:"🍽 満腹+"+(FULL[m.cat]||10)};
+const effect=m=>/^510/.test(m.code)?{self:true,drunk:-30,full:5,label:"ドリンクバーで酔いざまし"}:/^341/.test(m.code)?{drunk:45,full:4,label:"🍾 酔い+45"}:/^34/.test(m.code)?{drunk:20,full:2,label:"🍷 酔い+20"}:{full:FULL[m.cat]||10,label:"🍽 満腹+"+(FULL[m.cat]||10)};
 /* 対戦相手はすべて大人。lv=強さ(★)、speed=相手が料理を送る間隔(ms)、fullCap=満腹の上限、
    drunkRes=酔いやすさ(1が標準、小さいほどお酒に強い)、noDrink=お酒を飲まない、
    favor=相手が送ってきやすい品、favorP=その確率、heal=自分の酔いざましをする酔いの度合い */
@@ -728,10 +735,10 @@ function battle(){
 function fight(R){
   clearTimers();
   const me={full:0,drunk:0},cpu={full:0,drunk:0},cap=R.fullCap||100;let over=false,sent=0;
-  const pool=()=>R.noDrink?MENU.filter(m=>!/^340/.test(m.code)):MENU;
+  const pool=()=>R.noDrink?MENU.filter(m=>!/^34/.test(m.code)):MENU;
   const deal=()=>{let m;do m=rnd(pool());while(hand.some(h=>h.code===m.code));return m};
   let hand=[];for(let i=0;i<3;i++)hand.push(deal());
-  if(!R.noDrink&&!hand.some(h=>/^340/.test(h.code)))hand[2]=MENU.find(m=>m.code==="3401");
+  if(!R.noDrink&&!hand.some(h=>/^34/.test(h.code)))hand[2]=MENU.find(m=>m.code==="3401");
   app.innerHTML=`${hud(R.icon+" VS",`<span id="sc"></span>`)}
   <div class="fighters">
     <div class="fighter" id="fme"><b>あなた</b>${gauges("me")}</div>
@@ -759,7 +766,7 @@ function fight(R){
     const idx=hand.findIndex(m=>m.code===v);
     if(idx>=0){const m=hand[idx],e=effect(m);sent++;
       if(e.self){apply(me,m);$("#log").textContent="ドリンクバーで少し酔いがさめた";fx("ふぅ…","var(--green)")}
-      else{apply(cpu,m,R.drunkRes||1);flash("#fcpu");$("#log").textContent=`${R.name}に「${m.name}」をお届け!`;fx(/^340/.test(m.code)?"かんぱーい!":"お待たせしました!","var(--green)",/^340/.test(m.code)?"cheers":"munch")}
+      else{apply(cpu,m,R.drunkRes||1);flash("#fcpu");$("#log").textContent=`${R.name}に「${m.name}」をお届け!`;fx(/^34/.test(m.code)?"かんぱーい!":"お待たせしました!","var(--green)",/^34/.test(m.code)?"cheers":"munch")}
       buzz(15);hand[idx]=deal();
     }else{apply(me,MENU.find(x=>x.code==="2101"));flash("#fme");
       $("#log").textContent="手札にない番号…まちがって届いたミラノ風ドリアを自分で食べることに";
@@ -767,12 +774,12 @@ function fight(R){
     scramble();draw();check();
   }));
   const cpuTurn=()=>{if(over)return;
-    const choices=R.noDrink?pool().filter(m=>m.code!=="5101"):MENU;
+    const choices=(R.noDrink?pool():MENU).filter(m=>!/^510/.test(m.code)&&!/^341/.test(m.code));
     let m=rnd(choices);
     if(R.favor&&Math.random()<R.favorP)m=MENU.find(x=>x.code===rnd(R.favor));
     if(cpu.drunk>=(R.heal||60)&&Math.random()<.5)m=MENU.find(x=>x.code==="5101");
-    if(m.code==="5101"){apply(cpu,m);$("#log").textContent=`${R.name}はドリンクバーで酔いざまし中`}
-    else{apply(me,m);flash("#fme");$("#log").textContent=`${R.name}から「${m.name}」が届いた!`;play(/^340/.test(m.code)?"cheers":"hit");buzz(30)}
+    if(/^510/.test(m.code)){apply(cpu,m);$("#log").textContent=`${R.name}はドリンクバーで酔いざまし中`}
+    else{apply(me,m);flash("#fme");$("#log").textContent=`${R.name}から「${m.name}」が届いた!`;play(/^34/.test(m.code)?"cheers":"hit");buzz(30)}
     scramble();draw();check();
     const slow=cpu.drunk>=50?1.5:1;later(cpuTurn,R.speed*slow*(.8+Math.random()*.4));};
   later(cpuTurn,R.speed+800);
