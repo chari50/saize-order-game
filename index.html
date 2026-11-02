@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>サイゼ注文マスター</title>
+<meta name="description" content="サイゼリヤの注文番号を覚えて、連続注文に挑むファンメイドの非公式ゲーム">
+<style>
+:root{
+  --bg:#f6f1e4; --paper:#fffdf6; --ink:#2b2622; --muted:#7a6f63; --line:#e3d9c4;
+  --green:#1f7a3f; --red:#c8312b; --gold:#c99a2e; --shadow:0 2px 0 rgba(0,0,0,.08);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--bg:#1d1b18;--paper:#2a2723;--ink:#f1ebdf;--muted:#b3a897;--line:#433d35;--green:#3fae66;--red:#ec5b52;--gold:#e0b84f;}
+}
+:root[data-theme="dark"]{--bg:#1d1b18;--paper:#2a2723;--ink:#f1ebdf;--muted:#b3a897;--line:#433d35;--green:#3fae66;--red:#ec5b52;--gold:#e0b84f;}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+body{min-height:100dvh;display:flex;justify-content:center}
+#app{width:100%;max-width:480px;padding:12px 16px 24px;display:flex;flex-direction:column;gap:12px}
+.flag{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--green) 0 33%,#fff 33% 66%,var(--red) 66%)}
+header{display:flex;align-items:center;justify-content:space-between}
+header h1{font-size:20px;margin:0;letter-spacing:.04em}
+header h1 small{display:block;font-size:11px;color:var(--muted);font-weight:normal;letter-spacing:0}
+button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
+.btn{background:var(--paper);border:2px solid var(--ink);border-radius:12px;padding:12px 14px;font-weight:bold;box-shadow:var(--shadow);width:100%}
+.btn.primary{background:var(--green);color:#fff;border-color:var(--green)}
+.btn.ghost{border-color:var(--line);font-weight:normal}
+.btn:active{transform:translateY(1px)}
+.modes{display:grid;gap:10px}
+.mode{display:flex;gap:12px;align-items:center;text-align:left;background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:12px;box-shadow:var(--shadow)}
+.mode .no{font-family:ui-monospace,Menlo,monospace;font-weight:bold;font-size:18px;color:var(--red);border:2px dashed var(--red);border-radius:8px;padding:6px 8px;min-width:64px;text-align:center}
+.mode b{display:block;font-size:16px}
+.mode span{font-size:12px;color:var(--muted)}
+.mode .best{font-size:11px;color:var(--gold);font-weight:bold}
+.mode.main{border-color:var(--green)}
+.card{background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+.hud{display:flex;justify-content:space-between;align-items:center;font-weight:bold}
+.timebar{height:10px;background:var(--line);border-radius:5px;overflow:hidden}
+.timebar i{display:block;height:100%;background:var(--green);transition:width .1s linear}
+.timebar.low i{background:var(--red)}
+.customer{font-size:13px;color:var(--muted)}
+.ask{font-size:24px;font-weight:bold;line-height:1.35;min-height:2.7em;display:flex;align-items:center}
+.ask small{font-size:14px;color:var(--muted);font-weight:normal}
+/* order sheet */
+.sheet{background:var(--paper);border:2px solid var(--ink);border-radius:6px;padding:10px 12px;background-image:repeating-linear-gradient(transparent 0 27px,var(--line) 27px 28px)}
+.sheet-head{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);border-bottom:2px solid var(--ink);padding-bottom:4px;margin-bottom:8px}
+.digits{display:flex;gap:8px;justify-content:center}
+.digits div{width:52px;height:62px;border:2px solid var(--red);border-radius:6px;display:flex;align-items:center;justify-content:center;font:bold 34px "Comic Sans MS","Segoe Print","Hiragino Maru Gothic ProN",cursive;background:var(--paper)}
+.digits div.cur{box-shadow:0 0 0 3px rgba(200,49,43,.25)}
+.lines{font-size:14px;margin-top:8px;max-height:150px;overflow:auto}
+.lines div{display:flex;justify-content:space-between;gap:8px;height:28px;align-items:center}
+.lines code{font:bold 15px ui-monospace,Menlo,monospace;color:var(--red)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pad button{background:var(--paper);border:2px solid var(--line);border-radius:12px;height:56px;font-size:24px;font-weight:bold;box-shadow:var(--shadow)}
+.pad button:active{background:var(--line)}
+.pad .ok{background:var(--green);color:#fff;border-color:var(--green);font-size:18px}
+.pad .del{font-size:16px}
+.fx{position:fixed;left:50%;top:34%;transform:translate(-50%,-50%);font-size:40px;font-weight:900;pointer-events:none;opacity:0;text-shadow:0 2px 0 rgba(0,0,0,.15);white-space:nowrap}
+.fx.show{animation:pop .7s ease-out}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}25%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}100%{opacity:0;transform:translate(-50%,-90%) scale(1)}}
+.shake{animation:shake .35s}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.choices{display:grid;gap:8px}
+.choices button{background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:14px;font-size:16px;font-weight:bold;text-align:left;box-shadow:var(--shadow)}
+.choices button.right{border-color:var(--green);background:rgba(31,122,63,.12)}
+.choices button.wrong{border-color:var(--red);background:rgba(200,49,43,.12)}
+.result{text-align:center}
+.result .big{font-size:56px;font-weight:900;color:var(--green);line-height:1}
+.result .title{display:inline-block;margin:8px 0;padding:6px 14px;border:3px double var(--gold);border-radius:999px;color:var(--gold);font-weight:bold}
+.muted{color:var(--muted);font-size:12px}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+.book{display:grid;gap:4px;font-size:14px}
+.book .cat{margin-top:10px;font-weight:bold;color:var(--green);border-bottom:1px solid var(--line)}
+.book div.it{display:flex;gap:10px}
+.book code{font:bold 15px ui-monospace,Menlo,monospace;color:var(--red);min-width:72px}
+.book .p{margin-left:auto;color:var(--muted)}
+.vs{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:stretch}
+.vs button{background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:16px 8px;font-weight:bold;font-size:15px;min-height:96px;box-shadow:var(--shadow)}
+.vs .mid{align-self:center;font-weight:900;color:var(--muted)}
+.hidden{display:none!important}
+footer{font-size:11px;color:var(--muted);text-align:center;line-height:1.6}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="fx" class="fx"></div>
+<script>
+/* ===== メニューデータ =====
+ 出典: サイゼリヤ公式サイト「人気メニュー」https://www.saizeriya.co.jp/menu-popular/ ほか各商品ページ
+ 価格: 2026-10-29 価格改定後の掲載価格(税込・最低価格「〜」)。2026-11-02 確認。
+ price:null は番号のみ確認できた品(予算・価格モードでは使わない) */
+const MENU_AS_OF = "2026年11月2日 公式サイト掲載分";
+const MENU = [
+  {code:"1202",name:"小エビのサラダ",price:370,cat:"サラダ"},
+  {code:"1425",name:"柔らか青豆の温サラダ",price:210,cat:"サラダ"},
+  {code:"1305",name:"田舎風ミネストローネ",price:320,cat:"スープ"},
+  {code:"1307",name:"たまねぎのズッパ",price:320,cat:"スープ"},
+  {code:"1401",name:"辛味チキン",price:320,cat:"前菜・おつまみ"},
+  {code:"1402",name:"アロスティチーニ",price:420,cat:"前菜・おつまみ"},
+  {code:"1403",name:"ほうれん草のソテー",price:210,cat:"前菜・おつまみ"},
+  {code:"1405",name:"エスカルゴのオーブン焼き",price:420,cat:"前菜・おつまみ"},
+  {code:"1407",name:"チョリソー",price:420,cat:"前菜・おつまみ"},
+  {code:"1410",name:"ムール貝のガーリック焼き",price:420,cat:"前菜・おつまみ"},
+  {code:"2101",name:"ミラノ風ドリア",price:320,cat:"ドリア"},
+  {code:"2203",name:"バッファローモッツァレラのマルゲリータピザ",price:420,cat:"ピザ"},
+  {code:"2204",name:"野菜ときのこのピザ",price:420,cat:"ピザ"},
+  {code:"2301",name:"タラコソースシシリー風",price:420,cat:"パスタ"},
+  {code:"2303",name:"ペペロンチーノ",price:320,cat:"パスタ"},
+  {code:"2304",name:"パルマ風スパゲッティ",price:null,cat:"パスタ"},
+  {code:"2305",name:"カルボナーラ",price:530,cat:"パスタ"},
+  {code:"2328",name:"イカの墨入りセピアソース",price:530,cat:"パスタ"},
+  {code:"2402",name:"若鶏のディアボラ風",price:530,cat:"肉料理"},
+  {code:"2406",name:"ハンバーグステーキ",price:430,cat:"肉料理"},
+  {code:"2407",name:"ディアボラ風ハンバーグ",price:530,cat:"肉料理"},
+  {code:"3201",name:"ティラミス クラシコ",price:320,cat:"デザート",later:"3901"},
+  {code:"3206",name:"イタリアンプリン",price:270,cat:"デザート",later:"3906"},
+  {code:"3401",name:"グラスワイン(赤)",price:100,cat:"ワイン・ドリンク"},
+  {code:"3402",name:"グラスワイン(白)",price:100,cat:"ワイン・ドリンク"},
+  {code:"5101",name:"セットドリンクバー",price:210,cat:"ワイン・ドリンク"},
+];
+const PRICED = MENU.filter(m=>m.price);
+
+/* ===== ユーティリティ ===== */
+const $ = s=>document.querySelector(s);
+const app = $("#app");
+const rnd = a=>a[Math.floor(Math.random()*a.length)];
+const shuffle = a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const yen = n=>n.toLocaleString("ja-JP")+"円";
+function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem("saize:"+k));localStorage.setItem("saize:"+k,JSON.stringify(v))}catch(e){return null}}
+function best(mode,score,higher=true){const b=store("best:"+mode);if(b==null||(higher?score>b:score<b)){store("best:"+mode,score);return true}return false}
+function fx(text,color){const el=$("#fx");el.textContent=text;el.style.color=color;el.classList.remove("show");void el.offsetWidth;el.classList.add("show")}
+function buzz(ms){try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}}
+let timers=[];function clearTimers(){timers.forEach(t=>{clearInterval(t);clearTimeout(t)});timers=[];window.onkeydown=null}
+function every(fn,ms){const t=setInterval(fn,ms);timers.push(t);return t}
+function later(fn,ms){const t=setTimeout(fn,ms);timers.push(t);return t}
+const CUSTOMERS=["ひとり客","学生グループ","家族連れ","サイゼ飲みの常連","デート中のふたり","仕事帰りの会社員","部活帰りの高校生"];
+const SAY=["{n}ください","{n}をお願いします","えーと、{n}で","{n}ひとつ!","とりあえず{n}","{n}…あ、やっぱりそれで"];
+const say=m=>rnd(SAY).replace("{n}",m.name);
+
+/* ===== 称号 ===== */
+const TITLES=[[0,"見習いホール係"],[5,"お冷や運び名人"],[10,"ドリンクバー番長"],[15,"注文用紙の書き手"],[20,"ミラノ風ドリア検定3級"],[30,"番号暗記の鬼"],[40,"伝説のサイゼリアン"],[60,"グランドメニューそのもの"]];
+const titleOf=s=>TITLES.filter(t=>s>=t[0]).pop()[1];
+
+/* ===== 4桁入力パッド(共通) ===== */
+function orderPad(onSubmit,{len=4}={}){
+  let buf="";
+  const wrap=document.createElement("div");
+  wrap.innerHTML=`<div class="sheet"><div class="sheet-head"><span>ご注文用紙</span><span>番号を記入</span></div>
+    <div class="digits">${"<div></div>".repeat(len)}</div></div>
+    <div class="pad" style="margin-top:10px">${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-k="${n}">${n}</button>`).join("")}
+    <button class="del" data-k="del">けす</button><button data-k="0">0</button><button class="ok" data-k="ok">注文</button></div>`;
+  const cells=[...wrap.querySelectorAll(".digits div")];
+  const draw=()=>cells.forEach((c,i)=>{c.textContent=buf[i]||"";c.classList.toggle("cur",i===buf.length)});
+  const press=k=>{
+    if(k==="del")buf=buf.slice(0,-1);
+    else if(k==="ok"){if(buf.length===len){const v=buf;buf="";draw();onSubmit(v)}return}
+    else if(buf.length<len){buf+=k;if(buf.length===len){draw();const v=buf;buf="";later(()=>{draw();onSubmit(v)},90);return}}
+    draw();
+  };
+  wrap.querySelectorAll("[data-k]").forEach(b=>b.addEventListener("pointerdown",e=>{e.preventDefault();press(b.dataset.k)}));
+  window.onkeydown=e=>{if(/^[0-9]$/.test(e.key))press(e.key);else if(e.key==="Backspace")press("del");else if(e.key==="Enter")press("ok")};
+  draw();
+  return wrap;
+}
+
+/* ===== ホーム ===== */
+const MODES=[
+  {id:"rush",no:"0001",name:"連続注文タイムアタック",desc:"料理名を聞いて番号を書く。連続正解で時間が増え、まちがえると減る。",main:true},
+  {id:"budget",no:"1000",name:"予算ぴったりチャレンジ",desc:"1000円・1500円などお題の金額ちょうどになるように番号で注文。",unit:"円差",low:true},
+  {id:"reverse",no:"2101",name:"番号から料理あて",desc:"番号を見て、どの料理か4択で当てる。",unit:"問"},
+  {id:"group",no:"0004",name:"団体さんの一括注文",desc:"数秒だけ聞こえる注文を覚えて、全員分を書く。",unit:"人"},
+  {id:"dessert",no:"3906",name:"デザートは「すぐ」か「あとで」",desc:"プリンやティラミスは食後なら別の番号。ベテラン店員の知識を試す。",unit:"問"},
+  {id:"hilo",no:"0320",name:"どっちが高い?",desc:"2品を見て、高いほうを選ぶ。連続正解に挑戦。",unit:"連続"},
+];
+function home(){
+  clearTimers();
+  app.innerHTML=`<div class="flag"></div>
+  <header><h1>サイゼ注文マスター<small>番号で頼む、あの楽しさをゲームに(ファンメイド・非公式)</small></h1></header>
+  <div class="modes">${MODES.map(m=>{const b=store("best:"+m.id);return `<button class="mode ${m.main?"main":""}" data-m="${m.id}">
+    <div class="no">${m.no}</div><div><b>${m.name}</b><span>${m.desc}</span>${b!=null?`<div class="best">自己ベスト ${m.id==="rush"?b+"品":m.low?b+"円差":b+(m.unit||"")}</div>`:""}</div></button>`}).join("")}</div>
+  <button class="btn ghost" id="book">メニュー帳を見る(番号の予習)</button>
+  <footer>メニュー名・番号・価格は株式会社サイゼリヤ公式サイトの掲載情報(${MENU_AS_OF})より。<br>価格は税込の最低価格で、店舗や改定で変わります。本作は非公式のファンゲームです。</footer>`;
+  app.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>({rush,budget,reverse,group,dessert,hilo})[b.dataset.m]());
+  $("#book").onclick=book;
+}
+function book(){
+  clearTimers();
+  const cats=[...new Set(MENU.map(m=>m.cat))];
+  app.innerHTML=`<header><h1>メニュー帳</h1><button class="btn ghost" style="width:auto" id="back">もどる</button></header>
+  <div class="card book">${cats.map(c=>`<div class="cat">${c}</div>`+MENU.filter(m=>m.cat===c).map(m=>`<div class="it"><code>${m.code}${m.later?"/"+m.later:""}</code><span>${m.name}</span><span class="p">${m.price?yen(m.price)+"〜":"―"}</span></div>`).join("")).join("")}
+  <p class="muted">デザートの2つ目の番号は「あとで(食後に)」持ってきてほしいときの番号です。</p></div>`;
+  $("#back").onclick=home;
+}
+function resultView({mode,score,label,lines=[],shareText,isBest,title}){
+  clearTimers();
+  const text=encodeURIComponent(shareText+"\n#サイゼ注文マスター");
+  app.innerHTML=`<div class="flag"></div><div class="card result">
+    <div class="muted">${MODES.find(m=>m.id===mode).name}</div>
+    <div class="big">${score}</div><div>${label}</div>
+    ${title?`<div class="title">称号:${title}</div>`:""}
+    ${isBest?`<div style="color:var(--red);font-weight:bold">自己ベスト更新!</div>`:""}
+    <div class="lines" style="text-align:left;max-height:none">${lines.join("")}</div></div>
+  <div class="row"><button class="btn primary" id="again">もう一回</button><button class="btn" id="home">メニュー選択へ</button></div>
+  <a class="btn ghost" style="text-align:center;text-decoration:none;display:block" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text=${text}">結果をXでシェア</a>`;
+  $("#again").onclick=()=>({rush,budget,reverse,group,dessert,hilo})[mode]();
+  $("#home").onclick=home;
+}
+const hud=(l,r)=>`<div class="hud"><button class="btn ghost" style="width:auto;padding:6px 10px" id="quit">やめる</button><span>${l}</span><span>${r}</span></div>`;
+const bindQuit=()=>{$("#quit").onclick=home};
+
+/* ===== 1. 連続注文タイムアタック ===== */
+function rush(){
+  clearTimers();
+  const START=30,MAX=60;let t=START,score=0,combo=0,maxCombo=0,q=null,last=null,miss=[];
+  app.innerHTML=`${hud(`<span id="sc">0品</span>`,`<span id="tm">30.0秒</span>`)}
+    <div class="timebar" id="bar"><i></i></div>
+    <div class="card"><div class="customer" id="cu"></div><div class="ask" id="ask"></div><div class="muted" id="combo">&nbsp;</div></div><div id="padw"></div>`;
+  bindQuit();
+  const next=()=>{do q=rnd(MENU);while(q===last);last=q;$("#cu").textContent=rnd(CUSTOMERS)+"のご注文";$("#ask").textContent=say(q)};
+  const draw=()=>{$("#tm").textContent=t.toFixed(1)+"秒";$("#sc").textContent=score+"品";const bar=$("#bar");bar.firstChild.style.width=Math.min(100,t/MAX*100)+"%";bar.classList.toggle("low",t<8)};
+  $("#padw").appendChild(orderPad(v=>{
+    if(v===q.code){score++;combo++;maxCombo=Math.max(maxCombo,combo);
+      let add=1.5+(combo%5===0?3:0);t=Math.min(MAX,t+add);
+      fx(combo>=3?`${combo}連続! +${add}秒`:"ありがとうございます!","var(--green)");buzz(15);
+      $("#combo").textContent=combo>=2?`${combo}連続注文中 ${5-combo%5}品であとボーナス+3秒`:" ";
+    }else{combo=0;t-=5;miss.push(q);fx("−5秒","var(--red)");buzz([40,40,40]);
+      $("#ask").classList.add("shake");later(()=>$("#ask").classList.remove("shake"),350);
+      $("#combo").innerHTML=`正しくは <b style="color:var(--red)">${q.code}</b>(${q.name})`;}
+    draw();next();
+  }));
+  next();draw();
+  let prev=performance.now();
+  every(()=>{const now=performance.now();t-=(now-prev)/1000;prev=now;if(t<=0){t=0;draw();end()}else draw()},100);
+  function end(){const isBest=best("rush",score);
+    resultView({mode:"rush",score,label:`品の注文を受けました(最大${maxCombo}連続)`,title:titleOf(score),isBest,
+      lines:miss.length?["<div class='muted'>まちがえた番号(復習用)</div>",...[...new Set(miss)].map(m=>`<div><code>${m.code}</code><span>${m.name}</span></div>`)]:[],
+      shareText:`サイゼの番号注文、${score}品連続で受けました(最大${maxCombo}連続)。称号「${titleOf(score)}」`});}
+}
+
+/* ===== 2. 予算ぴったり ===== */
+function budget(){
+  clearTimers();
+  const target=rnd([1000,1000,1000,1500,2000]);let t=60,order=[];
+  app.innerHTML=`${hud(`お題 <b style="color:var(--red)">${yen(target)}</b>`,`<span id="tm">60秒</span>`)}
+  <div class="card"><div class="customer">番号を書いて注文。合計がお題ちょうどならパーフェクト。</div>
+  <div class="lines" id="ls" style="max-height:120px"></div>
+  <div class="hud" style="margin-top:6px"><span>合計</span><span id="tot">0円</span></div></div>
+  <div id="padw"></div>
+  <div class="row"><button class="btn ghost" id="undo">1品とりけし</button><button class="btn primary" id="pay">お会計</button></div>
+  <button class="btn ghost" id="peek">メニューを見る(残り時間−10秒)</button><div id="peekw"></div>`;
+  bindQuit();
+  const sum=()=>order.reduce((a,m)=>a+m.price,0);
+  const draw=()=>{$("#ls").innerHTML=order.map(m=>`<div><code>${m.code}</code><span>${m.name}</span><span>${yen(m.price)}</span></div>`).join("")||"<div class='muted'>まだ何も書いていません</div>";const s=sum();$("#tot").textContent=yen(s);$("#tot").style.color=s>target?"var(--red)":s===target?"var(--green)":""};
+  $("#padw").appendChild(orderPad(v=>{const m=PRICED.find(x=>x.code===v);if(!m){fx("その番号はありません","var(--red)");buzz([40,40]);return}order.push(m);draw();buzz(10)}));
+  $("#undo").onclick=()=>{order.pop();draw()};
+  $("#pay").onclick=end;
+  $("#peek").onclick=()=>{t-=10;$("#peek").remove();$("#peekw").innerHTML=`<div class="card book">${PRICED.map(m=>`<div class="it"><code>${m.code}</code><span>${m.name}</span><span class="p">${yen(m.price)}</span></div>`).join("")}</div>`};
+  draw();
+  every(()=>{t-=1;$("#tm").textContent=Math.max(0,t)+"秒";if(t<=0)end()},1000);
+  function end(){const s=sum(),diff=Math.abs(target-s),perfect=diff===0;const isBest=order.length?best("budget",diff,false):false;
+    resultView({mode:"budget",score:perfect?"ぴったり!":diff+"円差",label:`お題 ${yen(target)} / 合計 ${yen(s)}(${order.length}品)`,
+      title:perfect?"お会計の魔術師":diff<=30?"おつり計算名人":"",isBest,
+      lines:order.map(m=>`<div><code>${m.code}</code><span>${m.name}</span><span>${yen(m.price)}</span></div>`),
+      shareText:perfect?`サイゼで${yen(target)}ぴったり注文に成功!(${order.length}品)`:`サイゼで${yen(target)}ぴったり注文、${diff}円差でした`});}
+}
+
+/* ===== 3. 番号から料理あて ===== */
+function reverse(){
+  clearTimers();
+  const qs=shuffle(MENU).slice(0,10);let i=0,score=0,t=0;
+  app.innerHTML=`${hud(`<span id="n">1/10</span>`,`<span id="sc">0問正解</span>`)}
+  <div class="timebar" id="bar"><i></i></div>
+  <div class="card" style="text-align:center"><div class="customer">注文用紙にこう書いてあります。何の料理?</div>
+  <div class="digits" id="code" style="margin:10px 0"></div></div><div class="choices" id="ch"></div>`;
+  bindQuit();
+  const show=()=>{const q=qs[i];$("#n").textContent=`${i+1}/10`;$("#code").innerHTML=[...q.code].map(d=>`<div>${d}</div>`).join("");
+    const opts=shuffle([q,...shuffle(MENU.filter(m=>m!==q&&m.cat===q.cat)).concat(shuffle(MENU.filter(m=>m!==q&&m.cat!==q.cat))).slice(0,3)]);
+    $("#ch").innerHTML=opts.map(o=>`<button data-c="${o.code}">${o.name}</button>`).join("");
+    t=8;let locked=false;
+    const pick=c=>{if(locked)return;locked=true;const ok=c===q.code;if(ok){score++;fx("正解!","var(--green)");buzz(15)}else{fx("ざんねん","var(--red)");buzz([40,40])}
+      $("#ch").querySelectorAll("button").forEach(b=>{if(b.dataset.c===q.code)b.classList.add("right");else if(b.dataset.c===c)b.classList.add("wrong")});
+      $("#sc").textContent=score+"問正解";later(()=>{i++;i<10?show():end()},900)};
+    $("#ch").querySelectorAll("button").forEach(b=>b.onclick=()=>pick(b.dataset.c));
+    clearInterval(window._rv);window._rv=every(()=>{t-=.1;$("#bar").firstChild.style.width=(t/8*100)+"%";$("#bar").classList.toggle("low",t<3);if(t<=0){clearInterval(window._rv);pick(null)}},100);
+  };
+  show();
+  function end(){const isBest=best("reverse",score);resultView({mode:"reverse",score:score+"/10",label:"番号から料理を当てました",title:score===10?"番号を見ると味がする人":score>=7?"注文用紙マスター":"",isBest,shareText:`サイゼの番号を見て料理を当てるクイズ、10問中${score}問正解!`})}
+}
+
+/* ===== 4. 団体さんの一括注文 ===== */
+function group(){
+  clearTimers();
+  let size=2,cleared=0,lives=3;
+  const round=()=>{
+    const people=shuffle(MENU).slice(0,size);const need=people.map(m=>m.code);let got=[];
+    app.innerHTML=`${hud(`${size}名さま`,`${"❤".repeat(lives)}`)}
+    <div class="card" id="memo"><div class="customer">注文を覚えてください(あと<span id="cd">${size+2}</span>秒で聞こえなくなります)</div>
+    <div class="lines" style="max-height:none;font-size:17px">${people.map((m,k)=>`<div><span>${k+1}人目:${m.name}</span></div>`).join("")}</div></div>
+    <div id="padw" class="hidden"></div><div class="card hidden" id="got"><div class="customer">書いた番号</div><div class="lines" id="gl"></div></div>`;
+    bindQuit();
+    let c=size+2;const cd=every(()=>{c--;const el=$("#cd");if(el)el.textContent=c;if(c<=0){clearInterval(cd);start()}},1000);
+    function start(){
+      $("#memo").innerHTML=`<div class="customer">それでは注文用紙に書いてください(順番は自由・${size}品)</div><div class="ask">${people.map((_,k)=>"🧑").join(" ")}</div>`;
+      $("#padw").classList.remove("hidden");$("#got").classList.remove("hidden");
+      $("#padw").appendChild(orderPad(v=>{
+        const idx=need.indexOf(v);
+        if(idx>=0){need.splice(idx,1);got.push(MENU.find(m=>m.code===v));fx("はい!","var(--green)");buzz(10);
+          $("#gl").innerHTML=got.map(m=>`<div><code>${m.code}</code><span>${m.name}</span></div>`).join("");
+          if(!need.length){cleared=size;size++;later(round,600)}}
+        else{lives--;fx("それは頼んでない…","var(--red)");buzz([40,40,40]);if(lives<=0)later(()=>end(people),500);else $(".hud span:last-child").textContent="❤".repeat(lives)}
+      }));
+    }
+  };
+  round();
+  function end(people){const isBest=best("group",cleared);resultView({mode:"group",score:cleared+"名",label:"までの団体注文を完璧に受けました",title:cleared>=6?"宴会幹事の味方":cleared>=4?"記憶力のホール係":"",isBest,
+    lines:["<div class='muted'>最後の注文</div>",...people.map(m=>`<div><code>${m.code}</code><span>${m.name}</span></div>`)],
+    shareText:`サイゼの団体注文、${cleared}名分を一発で書けました`})}
+}
+
+/* ===== 5. デザートは「すぐ」か「あとで」 ===== */
+function dessert(){
+  clearTimers();
+  const desserts=MENU.filter(m=>m.later);let i=0,score=0;const N=10;let wrong=[];
+  const LATER=["食後に","あとで","ごはんのあとに","食べ終わったら"],NOW=["先に","すぐ","いっしょに","今すぐ"];
+  app.innerHTML=`${hud(`<span id="n">1/${N}</span>`,`<span id="sc">0問正解</span>`)}
+  <div class="card"><div class="customer" id="cu"></div><div class="ask" id="ask"></div><div class="muted" id="hint">&nbsp;</div></div><div id="padw"></div>`;
+  bindQuit();
+  let q;
+  const next=()=>{const d=rnd(desserts),isLater=Math.random()<.5;q={d,isLater,code:isLater?d.later:d.code};
+    $("#n").textContent=`${i+1}/${N}`;$("#cu").textContent=rnd(CUSTOMERS)+"のご注文";
+    $("#ask").innerHTML=`${d.name}、<span style="color:${isLater?"var(--red)":"var(--green)"}">${rnd(isLater?LATER:NOW)}</span>お願いします`};
+  $("#padw").appendChild(orderPad(v=>{
+    if(v===q.code){score++;fx("さすが!","var(--green)");buzz(15);$("#hint").innerHTML="&nbsp;"}
+    else{wrong.push(q);fx("惜しい","var(--red)");buzz([40,40]);$("#hint").innerHTML=`正しくは <b style="color:var(--red)">${q.code}</b>(${q.isLater?"あとで":"すぐ"}の番号)`}
+    $("#sc").textContent=score+"問正解";i++;if(i>=N)later(end,700);else next();
+  }));
+  next();
+  function end(){const isBest=best("dessert",score);resultView({mode:"dessert",score:score+"/"+N,label:"デザートの出しどきを当てました",title:score===N?"食後のプリンを守る人":score>=7?"ベテラン店員":"",isBest,
+    lines:["<div class='muted'>覚えかた:食後に持ってきてほしいときは、2けた目が「9」になる</div>",...desserts.map(d=>`<div><span>${d.name}</span><span>すぐ <code>${d.code}</code> / あとで <code>${d.later}</code></span></div>`)],
+    shareText:`サイゼのデザート「すぐ/あとで」番号クイズ、${N}問中${score}問正解`})}
+}
+
+/* ===== 6. どっちが高い? ===== */
+function hilo(){
+  clearTimers();
+  let streak=0;
+  app.innerHTML=`${hud("高いほうはどっち?",`<span id="sc">0連続</span>`)}
+  <div class="vs" id="vs"></div><button class="btn ghost" id="same">同じ値段!</button><div class="muted" id="ex">&nbsp;</div>`;
+  bindQuit();
+  let a,b,locked=false;
+  const next=()=>{locked=false;a=rnd(PRICED);do b=rnd(PRICED);while(b===a);
+    $("#vs").innerHTML=`<button data-s="a">${a.name}<br><span class="muted">${a.code}</span></button><span class="mid">VS</span><button data-s="b">${b.name}<br><span class="muted">${b.code}</span></button>`;
+    $("#vs").querySelectorAll("button").forEach(x=>x.onclick=()=>answer(x.dataset.s));};
+  $("#same").onclick=()=>answer("same");
+  function answer(s){if(locked)return;locked=true;const right=a.price===b.price?"same":a.price>b.price?"a":"b";
+    $("#ex").textContent=`${a.name} ${yen(a.price)} / ${b.name} ${yen(b.price)}`;
+    if(s===right){streak++;$("#sc").textContent=streak+"連続";fx("正解!","var(--green)");buzz(15);later(next,800)}
+    else{fx("ざんねん","var(--red)");buzz([40,40]);later(end,1200)}}
+  next();
+  function end(){const isBest=best("hilo",streak);resultView({mode:"hilo",score:streak+"連続",label:"値段くらべに正解",title:streak>=10?"サイゼの値札が見える人":streak>=5?"お値打ち鑑定士":"",isBest,shareText:`サイゼの値段くらべ、${streak}連続正解!`})}
+}
+
+home();
+</script>
+</body>
+</html>
