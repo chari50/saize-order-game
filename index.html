@@ -242,7 +242,7 @@ function buzz(ms){try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}}
 let timers=[];function clearTimers(){timers.forEach(t=>{clearInterval(t);clearTimeout(t)});timers=[];window.onkeydown=null}
 function every(fn,ms){const t=setInterval(fn,ms);timers.push(t);return t}
 function later(fn,ms){const t=setTimeout(fn,ms);timers.push(t);return t}
-const CUSTOMERS=["ひとり客","学生グループ","家族連れ","サイゼ飲みの常連","デート中のふたり","仕事帰りの会社員","部活帰りの高校生"];
+const CUSTOMERS=["ひとり客","家族連れ","サイゼ飲みの常連","デート中のふたり","仕事帰りの会社員","女子会のグループ","のんびり老夫婦"];
 const SAY=["{n}ください","{n}をお願いします","えーと、{n}で","{n}ひとつ!","とりあえず{n}","{n}…あ、やっぱりそれで"];
 const say=m=>rnd(SAY).replace("{n}",m.name);
 
@@ -698,16 +698,28 @@ function hilo(){
  ゲーム上の数値(満腹・酔い)は遊び用の設定で、実際の量やカロリーではない */
 const FULL={"サラダ":8,"スープ":10,"前菜・おつまみ":12,"ドリア":22,"ピザ":24,"パスタ":26,"肉料理":30,"デザート":6};
 const effect=m=>m.code==="5101"?{self:true,drunk:-30,full:5,label:"ドリンクバーで酔いざまし"}:/^340/.test(m.code)?{drunk:20,full:2,label:"🍷 酔い+20"}:{full:FULL[m.cat]||10,label:"🍽 満腹+"+(FULL[m.cat]||10)};
+/* 対戦相手はすべて大人。lv=強さ(★)、speed=相手が料理を送る間隔(ms)、fullCap=満腹の上限、
+   drunkRes=酔いやすさ(1が標準、小さいほどお酒に強い)、noDrink=お酒を飲まない、
+   favor=相手が送ってきやすい品、favorP=その確率、heal=自分の酔いざましをする酔いの度合い */
 const RIVALS=[
-  {name:"部活帰りの高校生",icon:"🧢",speed:4200,note:"食べざかり。お酒は飲めないので満腹で倒そう",noDrink:true,fullCap:160},
-  {name:"サイゼ飲みの常連",icon:"🍷",speed:3400,note:"お酒に強い。まず満腹に",drunkRes:.6,fullCap:140},
-  {name:"大食いの店長候補",icon:"👨‍🍳",speed:2600,note:"手が速い。番号を速く正確に",fullCap:120},
+  {lv:1,name:"仕事帰りの会社員",icon:"💼",speed:5000,fullCap:100,note:"疲れていて手がおそい。まずはこの人で練習",title:"おつかれさまの給仕"},
+  {lv:1,name:"のんびり老夫婦",icon:"👵",speed:5400,fullCap:80,drunkRes:1.3,note:"少食でお酒にも弱め。やさしく満腹に",title:"孝行ホール係"},
+  {lv:2,name:"ハンドルキーパー",icon:"🚗",speed:4300,fullCap:120,noDrink:true,note:"車で来たのでお酒は飲まない。料理だけで勝負",title:"安全運転の味方"},
+  {lv:2,name:"女子会の幹事",icon:"🍰",speed:4000,fullCap:110,favor:["3201","3206"],favorP:.5,note:"デザートを次々送ってくる。デザートは軽めなので落ち着いて",title:"デザートの守り手"},
+  {lv:2,name:"子連れのパパ",icon:"🧸",speed:3900,fullCap:110,heal:40,note:"すぐドリンクバーで回復する。満腹で押し切ろう",title:"ファミリーの味方"},
+  {lv:3,name:"ワイン通のソムリエ",icon:"🍇",speed:3800,fullCap:110,drunkRes:.4,favor:["3401","3402"],favorP:.6,note:"お酒にとても強く、ワインを送ってくる。酔いざましを忘れずに",title:"ソムリエ泣かせ"},
+  {lv:3,name:"深夜の大学院生",icon:"📚",speed:3600,fullCap:130,favor:["2101"],favorP:.6,note:"ミラノ風ドリアばかり送ってくる。満腹に注意",title:"ドリア研究家"},
+  {lv:3,name:"サイゼ飲みの常連",icon:"🍷",speed:3400,fullCap:140,drunkRes:.6,note:"お酒に強い。まず満腹に",title:"常連キラー"},
+  {lv:4,name:"食べ放題ハンター",icon:"🍖",speed:4200,fullCap:200,favor:["2402","2406","2407"],favorP:.5,note:"胃袋が底なし。肉料理を送ってくる長期戦",title:"胃袋ハンター"},
+  {lv:4,name:"宴会部長",icon:"🎤",speed:3000,fullCap:130,drunkRes:.8,favor:["3401","3402"],favorP:.5,note:"乾杯の手が止まらない。こちらが先に酔わないように",title:"宴会を制す者"},
+  {lv:4,name:"大食いの店長候補",icon:"👨‍🍳",speed:2600,fullCap:120,note:"手が速い。番号を速く正確に",title:"サイゼ最強の給仕"},
+  {lv:5,name:"伝説のサイゼリアン",icon:"👑",speed:2200,fullCap:160,drunkRes:.7,heal:60,note:"全番号を暗記した伝説の客。最強",title:"伝説を超えた者"},
 ];
 function battle(){
   clearTimers();
   app.innerHTML=`<div class="flag"></div><header><h1>酔わせて満腹バトル<small>番号で注文して、相手のテーブルに届けよう</small></h1></header>
   <div class="card" style="font-size:14px;line-height:1.7">・手札の3品から好きな料理の<b>番号</b>を書くと、相手に届きます<br>・料理で<b>満腹</b>、グラスワインで<b>酔い</b>がたまり、どちらかが満タンでダウン<br>・相手も一定時間ごとに料理を送ってきます<br>・<b>5101 ドリンクバー</b>は自分の酔いざまし<br>・番号をまちがえると、その料理を自分で食べることに…<br>・酔うと注文パッドの数字がばらばらに!</div>
-  <div class="modes">${RIVALS.map((r,i)=>`<button class="mode" data-r="${i}"><div class="no" style="font-size:26px">${r.icon}</div><div><b>${r.name}</b><span>${r.note}</span></div></button>`).join("")}</div>
+  <div class="modes">${RIVALS.map((r,i)=>`<button class="mode" data-r="${i}"><div class="no" style="font-size:26px">${r.icon}</div><div><b>${r.name}</b><span>${r.note}</span><div class="best">${"★".repeat(r.lv)}${"☆".repeat(5-r.lv)}${(store("beat")||{})[r.name]?" ・勝利済み":""}</div></div></button>`).join("")}</div>
   <button class="btn ghost" id="back">もどる</button>
   <footer>お酒は20歳になってから。ゲームの中だけで楽しんでください。</footer>`;
   $("#back").onclick=home;
@@ -756,7 +768,9 @@ function fight(R){
   }));
   const cpuTurn=()=>{if(over)return;
     const choices=R.noDrink?pool().filter(m=>m.code!=="5101"):MENU;
-    let m=rnd(choices);if(cpu.drunk>=60&&Math.random()<.5)m=MENU.find(x=>x.code==="5101");
+    let m=rnd(choices);
+    if(R.favor&&Math.random()<R.favorP)m=MENU.find(x=>x.code===rnd(R.favor));
+    if(cpu.drunk>=(R.heal||60)&&Math.random()<.5)m=MENU.find(x=>x.code==="5101");
     if(m.code==="5101"){apply(cpu,m);$("#log").textContent=`${R.name}はドリンクバーで酔いざまし中`}
     else{apply(me,m);flash("#fme");$("#log").textContent=`${R.name}から「${m.name}」が届いた!`;play(/^340/.test(m.code)?"cheers":"hit");buzz(30)}
     scramble();draw();check();
@@ -770,11 +784,11 @@ function fight(R){
     else if(me.full>=100)res={win:false,why:"あなたはお腹いっぱいでダウン…"};
     else if(me.drunk>=100)res={win:false,why:"あなたは酔いつぶれてダウン…"};
     if(!res)return;over=true;app.classList.remove("blur");
-    let wins=store("battlewins")||0;if(res.win){wins++;store("battlewins",wins)}
+    let wins=store("battlewins")||0;if(res.win){wins++;store("battlewins",wins);const bt=store("beat")||{};bt[R.name]=1;store("beat",bt)}
     const isBest=res.win&&best("battle",wins);
     later(()=>resultView({mode:"battle",score:res.win?"勝ち!":"負け…",label:res.why,
-      title:res.win?(R===RIVALS[2]?"サイゼ最強の給仕":R===RIVALS[1]?"常連キラー":"おもてなし上手"):"",isBest,
-      lines:[`<div><span>送った注文</span><span>${sent}品</span></div>`,`<div><span>通算の勝ち</span><span>${wins}勝</span></div>`],
+      title:res.win?R.title:"",isBest,
+      lines:[`<div><span>送った注文</span><span>${sent}品</span></div>`,`<div><span>通算の勝ち</span><span>${wins}勝</span></div>`,`<div><span>倒した相手</span><span>${Object.keys(store("beat")||{}).length} / ${RIVALS.length}人</span></div>`],
       shareText:res.win?`サイゼの番号注文バトルで「${R.name}」に勝利!${res.why}`:`サイゼの番号注文バトルで「${R.name}」に負けた…${res.why}`}),900);
   }
 }
