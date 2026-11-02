@@ -79,6 +79,34 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 .vs{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:stretch}
 .vs button{background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:16px 8px;font-weight:bold;font-size:15px;min-height:96px;box-shadow:var(--shadow)}
 .vs .mid{align-self:center;font-weight:900;color:var(--muted)}
+
+/* 注文画面ふう入力 */
+.op{background:var(--paper);border-radius:18px 18px 12px 12px;box-shadow:0 -2px 12px rgba(0,0,0,.08);padding:12px;display:flex;flex-direction:column;gap:10px}
+.op-field{text-align:center}
+.op-label{font-size:12px;color:var(--muted);margin-bottom:6px}
+.op-num{display:flex;gap:10px;justify-content:center}
+.op-num span{width:48px;height:56px;border-bottom:3px solid var(--line);display:flex;align-items:center;justify-content:center;font:bold 34px ui-rounded,"Hiragino Maru Gothic ProN",system-ui,sans-serif}
+.op-num span.cur{border-color:var(--green)}
+.op-preview{min-height:56px;display:flex;align-items:center;justify-content:center}
+.op-hint{font-size:13px;color:var(--muted)}
+.op-hint.err{color:var(--red);font-weight:bold}
+.op-item{width:100%;display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:12px;padding:10px 12px}
+.op-item.sm{justify-content:center}
+.op-item div{flex:1;display:flex;flex-direction:column;gap:2px;text-align:left}
+.op-item b{font-size:15px}.op-item small{font-size:11px;color:var(--red);font-weight:normal;margin-left:4px}
+.op-item span{font-size:13px;color:var(--muted)}
+.op-add{background:var(--green);color:#fff;border-radius:999px;padding:10px 14px;font-weight:bold;font-size:14px;white-space:nowrap}
+.op .pad button{background:var(--bg);border:none;border-radius:14px;height:54px;font-size:24px;font-weight:600;box-shadow:none}
+.op .pad button:active{background:var(--line)}
+.op .pad .del,.op .pad .clr{font-size:15px;color:var(--muted)}
+/* 学習 */
+.prog{height:12px;background:var(--line);border-radius:6px;overflow:hidden}.prog i{display:block;height:100%;background:var(--gold)}
+.flash{min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;cursor:pointer}
+.flash .nm{font-size:24px;font-weight:bold}
+.flash .cd{font:bold 48px ui-monospace,Menlo,monospace;color:var(--red);letter-spacing:.1em}
+.rule{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:14px;align-items:baseline}
+.rule code{font:bold 18px ui-monospace,Menlo,monospace;color:var(--red)}
+.stars{color:var(--gold);letter-spacing:-2px}
 .hidden{display:none!important}
 .fighters{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .fighter{background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:8px;font-size:12px}
@@ -92,7 +120,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 .hand{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .hand div{background:var(--paper);border:2px dashed var(--line);border-radius:10px;padding:8px 4px;text-align:center;font-size:13px;font-weight:bold;min-height:64px;display:flex;flex-direction:column;justify-content:center}
 .hand div small{font-weight:normal;color:var(--muted);font-size:11px}
-.blur .digits,.blur .hand{filter:blur(1.2px)}
+.blur .op-num,.blur .hand{filter:blur(1.2px)}
 .log{font-size:12px;color:var(--muted);min-height:1.5em;text-align:center}
 footer{font-size:11px;color:var(--muted);text-align:center;line-height:1.6}
 </style>
@@ -158,25 +186,116 @@ const TITLES=[[0,"見習いホール係"],[5,"お冷や運び名人"],[10,"ド�
 const titleOf=s=>TITLES.filter(t=>s>=t[0]).pop()[1];
 
 /* ===== 4桁入力パッド(共通) ===== */
-function orderPad(onSubmit,{len=4}={}){
-  let buf="";
-  const wrap=document.createElement("div");
-  wrap.innerHTML=`<div class="sheet"><div class="sheet-head"><span>ご注文用紙</span><span>番号を記入</span></div>
-    <div class="digits">${"<div></div>".repeat(len)}</div></div>
-    <div class="pad" style="margin-top:10px">${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-k="${n}">${n}</button>`).join("")}
-    <button class="del" data-k="del">けす</button><button data-k="0">0</button><button class="ok" data-k="ok">注文</button></div>`;
-  const cells=[...wrap.querySelectorAll(".digits div")];
-  const draw=()=>cells.forEach((c,i)=>{c.textContent=buf[i]||"";c.classList.toggle("cur",i===buf.length)});
+function orderPad(onSubmit,{len=4,confirm=false}={}){
+  /* スマホ注文画面ふうの番号入力。confirm:true なら商品確認→「カートに入れる」で確定、
+     false なら4けた入力で自動送信(時間制限のあるモード用) */
+  let buf="",locked=false;
+  const wrap=document.createElement("div");wrap.className="op";
+  wrap.innerHTML=`<div class="op-field"><div class="op-label">メニュー番号を入力</div>
+    <div class="op-num">${"<span></span>".repeat(len)}</div></div>
+    <div class="op-preview"></div>
+    <div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-k="${n}">${n}</button>`).join("")}
+    <button class="del" data-k="del">⌫</button><button data-k="0">0</button><button class="clr" data-k="clr">クリア</button></div>`;
+  const cells=[...wrap.querySelectorAll(".op-num span")],pv=wrap.querySelector(".op-preview");
+  const item=c=>MENU.find(m=>m.code===c)||MENU.find(m=>m.later===c);
+  const preview=()=>{
+    if(buf.length<len){pv.innerHTML=`<div class="op-hint">${buf.length?"あと"+(len-buf.length)+"けた":"4けたの番号を入力してください"}</div>`;return}
+    const m=item(buf);
+    if(!confirm){pv.innerHTML=m?`<div class="op-item sm"><b>${m.name}${m.later===buf?"(あとで)":""}</b></div>`:`<div class="op-hint err">該当する商品がありません</div>`;return}
+    pv.innerHTML=m?`<div class="op-item"><div><b>${m.name}${m.later===buf?"<small>(食後にお持ちします)</small>":""}</b><span>${m.price?yen(m.price)+"〜(税込)":""}</span></div>
+      <button class="op-add" data-k="ok">カートに入れる</button></div>`:`<div class="op-hint err">該当する商品がありません。番号をご確認ください</div>`;
+    const add=pv.querySelector(".op-add");if(add)add.addEventListener("pointerdown",e=>{e.preventDefault();press("ok")});
+  };
+  const draw=()=>{cells.forEach((c,i)=>{c.textContent=buf[i]||"";c.classList.toggle("cur",i===buf.length)});preview()};
+  const submit=()=>{const v=buf;buf="";draw();onSubmit(v)};
   const press=k=>{
+    if(locked)return;
     if(k==="del")buf=buf.slice(0,-1);
-    else if(k==="ok"){if(buf.length===len){const v=buf;buf="";draw();onSubmit(v)}return}
-    else if(buf.length<len){buf+=k;if(buf.length===len){draw();const v=buf;buf="";later(()=>{draw();onSubmit(v)},90);return}}
+    else if(k==="clr")buf="";
+    else if(k==="ok"){if(buf.length===len)submit();return}
+    else if(buf.length<len){buf+=k;if(buf.length===len&&!confirm){draw();locked=true;later(()=>{locked=false;submit()},180);return}}
     draw();
   };
-  wrap.querySelectorAll("[data-k]").forEach(b=>b.addEventListener("pointerdown",e=>{e.preventDefault();press(b.dataset.k)}));
+  wrap.querySelectorAll(".pad [data-k]").forEach(b=>b.addEventListener("pointerdown",e=>{e.preventDefault();press(b.dataset.k)}));
   window.onkeydown=e=>{if(/^[0-9]$/.test(e.key))press(e.key);else if(e.key==="Backspace")press("del");else if(e.key==="Enter")press("ok")};
   draw();
   return wrap;
+}
+
+/* ===== 学習モード ===== */
+const LV_MAX=3;
+const lv=()=>store("learn")||{};
+const setLv=(code,v)=>{const o=lv();o[code]=Math.max(0,Math.min(LV_MAX,v));store("learn",o)};
+const learnedCount=()=>{const o=lv();return MENU.filter(m=>(o[m.code]||0)>=LV_MAX).length};
+const stars=code=>{const n=lv()[code]||0;return `<span class="stars">${"★".repeat(n)}${"☆".repeat(LV_MAX-n)}</span>`};
+/* 覚えていない品ほど出やすくする */
+function pickToLearn(exclude){const o=lv();const pool=MENU.filter(m=>m!==exclude);const w=pool.map(m=>1+(LV_MAX-(o[m.code]||0))*3);
+  let r=Math.random()*w.reduce((a,b)=>a+b,0);for(let i=0;i<pool.length;i++){r-=w[i];if(r<=0)return pool[i]}return pool[0]}
+const RULES=[
+  ["12","サラダ"],["13","スープ"],["14","前菜・おつまみ(温サラダもここ)"],["21","ドリア"],["22","ピザ"],["23","パスタ"],["24","肉料理"],["32","デザート(すぐ)"],["39","デザート(食後に=あとで)"],["34","グラスワイン"],["51","ドリンクバー"]];
+function learn(){
+  clearTimers();
+  const n=learnedCount();
+  app.innerHTML=`<div class="flag"></div><header><h1>番号をおぼえる<small>まずはここから。★3つで「覚えた」</small></h1><button class="btn ghost" style="width:auto" id="back">もどる</button></header>
+  <div class="card"><div class="hud"><span>覚えた品</span><span>${n} / ${MENU.length}品</span></div><div class="prog" style="margin-top:6px"><i style="width:${n/MENU.length*100}%"></i></div></div>
+  <div class="modes">
+    <button class="mode" id="l1"><div class="no">STEP1</div><div><b>番号のしくみ</b><span>上2けたでジャンルがわかる。まず全体像をつかむ。</span></div></button>
+    <button class="mode" id="l2"><div class="no">STEP2</div><div><b>暗記カード</b><span>料理名を見て番号を思い出す。タップで答え。</span></div></button>
+    <button class="mode main" id="l3"><div class="no">STEP3</div><div><b>入力して練習</b><span>時間制限なし。注文画面で番号を入れて確かめる。ヒントあり。</span></div></button>
+  </div>
+  <button class="btn ghost" id="reset">覚えた記録をリセット</button>`;
+  $("#back").onclick=home;$("#l1").onclick=learnRules;$("#l2").onclick=learnCards;$("#l3").onclick=learnPractice;
+  $("#reset").onclick=()=>{if(learnedCount()===0&&!Object.keys(lv()).length)return;store("learn",{});learn()};
+}
+function learnRules(){
+  clearTimers();
+  app.innerHTML=`<header><h1>番号のしくみ</h1><button class="btn ghost" style="width:auto" id="back">もどる</button></header>
+  <div class="card"><p style="margin-top:0;font-size:14px">番号は4けた。<b>上2けたでジャンル</b>、下2けたでその中の何番目かが決まっています。</p>
+  <div class="rule">${RULES.map(([k,v])=>{const ex=MENU.filter(m=>m.code.startsWith(k)||(m.later||"").startsWith(k));return `<code>${k}□□</code><span><b>${v}</b><br><span class="muted">${ex.map(m=>(m.code.startsWith(k)?m.code:m.later)+" "+m.name).join("、")}</span></span>`}).join("")}</div>
+  <p class="muted">このゲームに入っている品から見た並びかたです。お店のメニューの全品を確かめたものではありません。</p></div>
+  <div class="card" style="font-size:14px;line-height:1.7"><b>覚えるコツ</b><br>
+  ・1000番台は前菜系、2000番台はメイン、3000番台はデザートとワイン<br>
+  ・2000番台は ドリア21 → ピザ22 → パスタ23 → お肉24 の順に並ぶ<br>
+  ・デザートを食後に頼むときは2けた目が9になる(3206 → 3906)<br>
+  ・グラスワインは赤が3401、白が3402</div>
+  <button class="btn primary" id="go">暗記カードへ</button>`;
+  $("#back").onclick=learn;$("#go").onclick=learnCards;
+}
+function learnCards(){
+  clearTimers();let cur=null,shown=false,count=0;
+  app.innerHTML=`${hud("暗記カード",`<span id="cnt">0枚</span>`)}
+  <div class="card flash" id="fc"></div>
+  <div class="row"><button class="btn" id="no">まだ</button><button class="btn primary" id="yes">覚えた</button></div>
+  <p class="muted" style="text-align:center">カードをタップすると番号が出ます</p>`;
+  $("#quit").onclick=learn;
+  const next=()=>{cur=pickToLearn(cur);shown=false;draw()};
+  const draw=()=>{$("#fc").innerHTML=`<div class="muted">${cur.cat}</div><div class="nm">${cur.name}</div>
+    <div class="cd">${shown?cur.code:"????"}</div>${shown&&cur.later?`<div class="muted">食後に頼むなら ${cur.later}</div>`:""}${shown&&cur.price?`<div class="muted">${yen(cur.price)}〜</div>`:""}<div>${stars(cur.code)}</div>`;
+    $("#cnt").textContent=count+"枚"};
+  $("#fc").onclick=()=>{shown=true;draw()};
+  $("#yes").onclick=()=>{if(!shown){shown=true;draw();return}setLv(cur.code,(lv()[cur.code]||0)+1);count++;next()};
+  $("#no").onclick=()=>{if(!shown){shown=true;draw();return}setLv(cur.code,(lv()[cur.code]||0)-1);count++;next()};
+  window.onkeydown=e=>{if(e.key===" ")$("#fc").onclick()};
+  next();
+}
+function learnPractice(){
+  clearTimers();let q=null,hint=0,ok=0,total=0;
+  app.innerHTML=`${hud("入力して練習",`<span id="sc">0/0</span>`)}
+  <div class="card"><div class="customer" id="cat"></div><div class="ask" id="ask"></div>
+  <div class="row" style="align-items:center"><div id="st"></div><button class="btn ghost" style="width:auto;padding:6px 12px" id="hint">ヒント</button></div>
+  <div class="muted" id="msg">&nbsp;</div></div><div id="padw"></div>`;
+  $("#quit").onclick=learn;
+  const next=()=>{q=pickToLearn(q);hint=0;$("#cat").textContent=q.cat;$("#ask").textContent=q.name;$("#st").innerHTML=stars(q.code)};
+  $("#hint").onclick=()=>{hint=Math.min(3,hint+1);$("#msg").innerHTML=`ヒント: <b style="color:var(--red)">${q.code.slice(0,hint)}${"□".repeat(4-hint)}</b>`};
+  $("#padw").appendChild(orderPad(v=>{
+    total++;
+    if(v===q.code){ok++;const up=hint?0:1;setLv(q.code,(lv()[q.code]||0)+up);fx(hint?"正解(ヒントあり)":"正解!","var(--green)");buzz(15);
+      $("#msg").innerHTML=`${q.code} ${q.name} ${up?"★+1":""}`;}
+    else{setLv(q.code,(lv()[q.code]||0)-1);fx("ちがいます","var(--red)");buzz([40,40]);
+      const m=MENU.find(x=>x.code===v);$("#msg").innerHTML=`正しくは <b style="color:var(--red)">${q.code}</b>${m?`(${v}は${m.name})`:""}`;}
+    $("#sc").textContent=`${ok}/${total}`;next();
+  },{confirm:true}));
+  next();
 }
 
 /* ===== ホーム ===== */
@@ -193,18 +312,19 @@ function home(){
   clearTimers();app.classList.remove("blur");
   app.innerHTML=`<div class="flag"></div>
   <header><h1>サイゼ注文マスター<small>番号で頼む、あの楽しさをゲームに(ファンメイド・非公式)</small></h1></header>
+  <button class="mode main" id="learn" style="border-color:var(--gold)"><div class="no" style="color:var(--gold);border-color:var(--gold)">STUDY</div><div><b>番号をおぼえる(学習モード)</b><span>番号のしくみ・暗記カード・入力練習</span><div class="best">覚えた品 ${learnedCount()} / ${MENU.length}</div></div></button>
   <div class="modes">${MODES.map(m=>{const b=store("best:"+m.id);return `<button class="mode ${m.main?"main":""}" data-m="${m.id}">
     <div class="no">${m.no}</div><div><b>${m.name}</b><span>${m.desc}</span>${b!=null?`<div class="best">自己ベスト ${m.id==="rush"?b+"品":m.low?b+"円差":b+(m.unit||"")}</div>`:""}</div></button>`}).join("")}</div>
   <button class="btn ghost" id="book">メニュー帳を見る(番号の予習)</button>
   <footer>メニュー名・番号・価格は株式会社サイゼリヤ公式サイトの掲載情報(${MENU_AS_OF})より。<br>価格は税込の最低価格で、店舗や改定で変わります。本作は非公式のファンゲームです。</footer>`;
   app.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>({rush,budget,reverse,group,dessert,hilo,battle})[b.dataset.m]());
-  $("#book").onclick=book;
+  $("#book").onclick=book;$("#learn").onclick=learn;
 }
 function book(){
   clearTimers();
   const cats=[...new Set(MENU.map(m=>m.cat))];
   app.innerHTML=`<header><h1>メニュー帳</h1><button class="btn ghost" style="width:auto" id="back">もどる</button></header>
-  <div class="card book">${cats.map(c=>`<div class="cat">${c}</div>`+MENU.filter(m=>m.cat===c).map(m=>`<div class="it"><code>${m.code}${m.later?"/"+m.later:""}</code><span>${m.name}</span><span class="p">${m.price?yen(m.price)+"〜":"―"}</span></div>`).join("")).join("")}
+  <div class="card book">${cats.map(c=>`<div class="cat">${c}</div>`+MENU.filter(m=>m.cat===c).map(m=>`<div class="it"><code>${m.code}${m.later?"/"+m.later:""}</code><span>${m.name}</span><span class="p">${m.price?yen(m.price)+"〜":"―"} ${stars(m.code)}</span></div>`).join("")).join("")}
   <p class="muted">デザートの2つ目の番号は「あとで(食後に)」持ってきてほしいときの番号です。</p></div>`;
   $("#back").onclick=home;
 }
@@ -268,7 +388,7 @@ function budget(){
   bindQuit();
   const sum=()=>order.reduce((a,m)=>a+m.price,0);
   const draw=()=>{$("#ls").innerHTML=order.map(m=>`<div><code>${m.code}</code><span>${m.name}</span><span>${yen(m.price)}</span></div>`).join("")||"<div class='muted'>まだ何も書いていません</div>";const s=sum();$("#tot").textContent=yen(s);$("#tot").style.color=s>target?"var(--red)":s===target?"var(--green)":""};
-  $("#padw").appendChild(orderPad(v=>{const m=PRICED.find(x=>x.code===v);if(!m){fx("その番号はありません","var(--red)");buzz([40,40]);return}order.push(m);draw();buzz(10)}));
+  $("#padw").appendChild(orderPad(v=>{const m=PRICED.find(x=>x.code===v);if(!m){fx("その番号はありません","var(--red)");buzz([40,40]);return}order.push(m);draw();buzz(10);fx("カートに追加","var(--green)")},{confirm:true}));
   $("#undo").onclick=()=>{order.pop();draw()};
   $("#pay").onclick=end;
   $("#peek").onclick=()=>{t-=10;$("#peek").remove();$("#peekw").innerHTML=`<div class="card book">${PRICED.map(m=>`<div class="it"><code>${m.code}</code><span>${m.name}</span><span class="p">${yen(m.price)}</span></div>`).join("")}</div>`};
