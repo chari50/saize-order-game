@@ -80,6 +80,20 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 .vs button{background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:16px 8px;font-weight:bold;font-size:15px;min-height:96px;box-shadow:var(--shadow)}
 .vs .mid{align-self:center;font-weight:900;color:var(--muted)}
 .hidden{display:none!important}
+.fighters{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fighter{background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:8px;font-size:12px}
+.fighter.hit{animation:shake .35s;border-color:var(--red)}
+.fighter b{display:block;font-size:14px;margin-bottom:4px}
+.gauge{display:flex;align-items:center;gap:6px;margin-top:4px}
+.gauge span{width:2.6em;flex:none}
+.gauge .g{flex:1;height:10px;background:var(--line);border-radius:5px;overflow:hidden}
+.gauge .g i{display:block;height:100%;width:0;transition:width .3s}
+.g.full i{background:#d98a2b}.g.drunk i{background:#9b3fb5}
+.hand{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.hand div{background:var(--paper);border:2px dashed var(--line);border-radius:10px;padding:8px 4px;text-align:center;font-size:13px;font-weight:bold;min-height:64px;display:flex;flex-direction:column;justify-content:center}
+.hand div small{font-weight:normal;color:var(--muted);font-size:11px}
+.blur .digits,.blur .hand{filter:blur(1.2px)}
+.log{font-size:12px;color:var(--muted);min-height:1.5em;text-align:center}
 footer{font-size:11px;color:var(--muted);text-align:center;line-height:1.6}
 </style>
 </head>
@@ -168,6 +182,7 @@ function orderPad(onSubmit,{len=4}={}){
 /* ===== ホーム ===== */
 const MODES=[
   {id:"rush",no:"0001",name:"連続注文タイムアタック",desc:"料理名を聞いて番号を書く。連続正解で時間が増え、まちがえると減る。",main:true},
+  {id:"battle",no:"3401",name:"酔わせて満腹バトル",desc:"番号で料理とワインを相手に送り、お腹いっぱいか酔いつぶれでダウンさせる対戦。",unit:"勝",main:true},
   {id:"budget",no:"1000",name:"予算ぴったりチャレンジ",desc:"1000円・1500円などお題の金額ちょうどになるように番号で注文。",unit:"円差",low:true},
   {id:"reverse",no:"2101",name:"番号から料理あて",desc:"番号を見て、どの料理か4択で当てる。",unit:"問"},
   {id:"group",no:"0004",name:"団体さんの一括注文",desc:"数秒だけ聞こえる注文を覚えて、全員分を書く。",unit:"人"},
@@ -175,14 +190,14 @@ const MODES=[
   {id:"hilo",no:"0320",name:"どっちが高い?",desc:"2品を見て、高いほうを選ぶ。連続正解に挑戦。",unit:"連続"},
 ];
 function home(){
-  clearTimers();
+  clearTimers();app.classList.remove("blur");
   app.innerHTML=`<div class="flag"></div>
   <header><h1>サイゼ注文マスター<small>番号で頼む、あの楽しさをゲームに(ファンメイド・非公式)</small></h1></header>
   <div class="modes">${MODES.map(m=>{const b=store("best:"+m.id);return `<button class="mode ${m.main?"main":""}" data-m="${m.id}">
     <div class="no">${m.no}</div><div><b>${m.name}</b><span>${m.desc}</span>${b!=null?`<div class="best">自己ベスト ${m.id==="rush"?b+"品":m.low?b+"円差":b+(m.unit||"")}</div>`:""}</div></button>`}).join("")}</div>
   <button class="btn ghost" id="book">メニュー帳を見る(番号の予習)</button>
   <footer>メニュー名・番号・価格は株式会社サイゼリヤ公式サイトの掲載情報(${MENU_AS_OF})より。<br>価格は税込の最低価格で、店舗や改定で変わります。本作は非公式のファンゲームです。</footer>`;
-  app.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>({rush,budget,reverse,group,dessert,hilo})[b.dataset.m]());
+  app.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>({rush,budget,reverse,group,dessert,hilo,battle})[b.dataset.m]());
   $("#book").onclick=book;
 }
 function book(){
@@ -204,7 +219,7 @@ function resultView({mode,score,label,lines=[],shareText,isBest,title}){
     <div class="lines" style="text-align:left;max-height:none">${lines.join("")}</div></div>
   <div class="row"><button class="btn primary" id="again">もう一回</button><button class="btn" id="home">メニュー選択へ</button></div>
   <a class="btn ghost" style="text-align:center;text-decoration:none;display:block" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text=${text}">結果をXでシェア</a>`;
-  $("#again").onclick=()=>({rush,budget,reverse,group,dessert,hilo})[mode]();
+  $("#again").onclick=()=>({rush,budget,reverse,group,dessert,hilo,battle})[mode]();
   $("#home").onclick=home;
 }
 const hud=(l,r)=>`<div class="hud"><button class="btn ghost" style="width:auto;padding:6px 10px" id="quit">やめる</button><span>${l}</span><span>${r}</span></div>`;
@@ -360,6 +375,91 @@ function hilo(){
     else{fx("ざんねん","var(--red)");buzz([40,40]);later(end,1200)}}
   next();
   function end(){const isBest=best("hilo",streak);resultView({mode:"hilo",score:streak+"連続",label:"値段くらべに正解",title:streak>=10?"サイゼの値札が見える人":streak>=5?"お値打ち鑑定士":"",isBest,shareText:`サイゼの値段くらべ、${streak}連続正解!`})}
+}
+
+/* ===== 7. 酔わせて満腹バトル =====
+ ゲーム上の数値(満腹・酔い)は遊び用の設定で、実際の量やカロリーではない */
+const FULL={"サラダ":8,"スープ":10,"前菜・おつまみ":12,"ドリア":22,"ピザ":24,"パスタ":26,"肉料理":30,"デザート":6};
+const effect=m=>m.code==="5101"?{self:true,drunk:-30,full:5,label:"ドリンクバーで酔いざまし"}:/^340/.test(m.code)?{drunk:20,full:2,label:"🍷 酔い+20"}:{full:FULL[m.cat]||10,label:"🍽 満腹+"+(FULL[m.cat]||10)};
+const RIVALS=[
+  {name:"部活帰りの高校生",icon:"🧢",speed:4200,note:"食べざかり。お酒は飲めないので満腹で倒そう",noDrink:true,fullCap:160},
+  {name:"サイゼ飲みの常連",icon:"🍷",speed:3400,note:"お酒に強い。まず満腹に",drunkRes:.6,fullCap:140},
+  {name:"大食いの店長候補",icon:"👨‍🍳",speed:2600,note:"手が速い。番号を速く正確に",fullCap:120},
+];
+function battle(){
+  clearTimers();
+  app.innerHTML=`<div class="flag"></div><header><h1>酔わせて満腹バトル<small>番号で注文して、相手のテーブルに届けよう</small></h1></header>
+  <div class="card" style="font-size:14px;line-height:1.7">・手札の3品から好きな料理の<b>番号</b>を書くと、相手に届きます<br>・料理で<b>満腹</b>、グラスワインで<b>酔い</b>がたまり、どちらかが満タンでダウン<br>・相手も一定時間ごとに料理を送ってきます<br>・<b>5101 ドリンクバー</b>は自分の酔いざまし<br>・番号をまちがえると、その料理を自分で食べることに…<br>・酔うと注文パッドの数字がばらばらに!</div>
+  <div class="modes">${RIVALS.map((r,i)=>`<button class="mode" data-r="${i}"><div class="no" style="font-size:26px">${r.icon}</div><div><b>${r.name}</b><span>${r.note}</span></div></button>`).join("")}</div>
+  <button class="btn ghost" id="back">もどる</button>
+  <footer>お酒は20歳になってから。ゲームの中だけで楽しんでください。</footer>`;
+  $("#back").onclick=home;
+  app.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>fight(RIVALS[+b.dataset.r]));
+}
+function fight(R){
+  clearTimers();
+  const me={full:0,drunk:0},cpu={full:0,drunk:0},cap=R.fullCap||100;let over=false,sent=0;
+  const pool=()=>R.noDrink?MENU.filter(m=>!/^340/.test(m.code)):MENU;
+  const deal=()=>{let m;do m=rnd(pool());while(hand.some(h=>h.code===m.code));return m};
+  let hand=[];for(let i=0;i<3;i++)hand.push(deal());
+  if(!R.noDrink&&!hand.some(h=>/^340/.test(h.code)))hand[2]=MENU.find(m=>m.code==="3401");
+  app.innerHTML=`${hud(R.icon+" VS",`<span id="sc"></span>`)}
+  <div class="fighters">
+    <div class="fighter" id="fme"><b>あなた</b>${gauges("me")}</div>
+    <div class="fighter" id="fcpu"><b>${R.icon} ${R.name}</b>${gauges("cpu")}</div>
+  </div>
+  <div class="log" id="log">手札から番号を書いて注文!</div>
+  <div class="hand" id="hand"></div>
+  <div id="padw"></div>`;
+  bindQuit();
+  function gauges(id){return `<div class="gauge"><span>満腹</span><div class="g full"><i id="${id}F"></i></div></div><div class="gauge"><span>酔い</span><div class="g drunk"><i id="${id}D"></i></div></div>`}
+  const pct=(v,c)=>Math.max(0,Math.min(100,v/c*100))+"%";
+  const draw=()=>{
+    $("#meF").style.width=pct(me.full,100);$("#meD").style.width=pct(me.drunk,100);
+    $("#cpuF").style.width=pct(cpu.full,cap);$("#cpuD").style.width=pct(cpu.drunk,100);
+    $("#hand").innerHTML=hand.map(m=>{const e=effect(m);return `<div>${m.name}<small>${e.self?"自分に":"相手に"} ${e.label.replace("ドリンクバーで","")}</small></div>`}).join("");
+    app.classList.toggle("blur",me.drunk>=75);
+  };
+  const flash=id=>{const el=$(id);el.classList.remove("hit");void el.offsetWidth;el.classList.add("hit")};
+  const apply=(who,m,mult=1)=>{const e=effect(m);who.full=Math.max(0,who.full+e.full);who.drunk=Math.max(0,Math.min(100,who.drunk+e.drunk*mult))};
+  const scramble=()=>{const btns=[...app.querySelectorAll(".pad button")].filter(b=>/^[0-9]$/.test(b.dataset.k));
+    const ks=me.drunk>=50?shuffle(["1","2","3","4","5","6","7","8","9","0"]):["1","2","3","4","5","6","7","8","9","0"];
+    btns.forEach((b,i)=>{b.dataset.k=ks[i];b.textContent=ks[i]})};
+  $("#padw").appendChild(orderPad(v=>{
+    if(over)return;
+    const idx=hand.findIndex(m=>m.code===v);
+    if(idx>=0){const m=hand[idx],e=effect(m);sent++;
+      if(e.self){apply(me,m);$("#log").textContent="ドリンクバーで少し酔いがさめた";fx("ふぅ…","var(--green)")}
+      else{apply(cpu,m,R.drunkRes||1);flash("#fcpu");$("#log").textContent=`${R.name}に「${m.name}」をお届け!`;fx(/^340/.test(m.code)?"かんぱーい!":"お待たせしました!","var(--green)")}
+      buzz(15);hand[idx]=deal();
+    }else{apply(me,MENU.find(x=>x.code==="2101"));flash("#fme");
+      $("#log").textContent="手札にない番号…まちがって届いたミラノ風ドリアを自分で食べることに";
+      fx("自爆!","var(--red)");buzz([40,40,40])}
+    scramble();draw();check();
+  }));
+  const cpuTurn=()=>{if(over)return;
+    const choices=R.noDrink?pool().filter(m=>m.code!=="5101"):MENU;
+    let m=rnd(choices);if(cpu.drunk>=60&&Math.random()<.5)m=MENU.find(x=>x.code==="5101");
+    if(m.code==="5101"){apply(cpu,m);$("#log").textContent=`${R.name}はドリンクバーで酔いざまし中`}
+    else{apply(me,m);flash("#fme");$("#log").textContent=`${R.name}から「${m.name}」が届いた!`;buzz(30)}
+    scramble();draw();check();
+    const slow=cpu.drunk>=50?1.5:1;later(cpuTurn,R.speed*slow*(.8+Math.random()*.4));};
+  later(cpuTurn,R.speed+800);
+  draw();
+  function check(){
+    let res=null;
+    if(cpu.full>=cap)res={win:true,why:`${R.name}はお腹いっぱいでダウン!`};
+    else if(cpu.drunk>=100)res={win:true,why:`${R.name}は酔いつぶれてダウン!`};
+    else if(me.full>=100)res={win:false,why:"あなたはお腹いっぱいでダウン…"};
+    else if(me.drunk>=100)res={win:false,why:"あなたは酔いつぶれてダウン…"};
+    if(!res)return;over=true;app.classList.remove("blur");
+    let wins=store("battlewins")||0;if(res.win){wins++;store("battlewins",wins)}
+    const isBest=res.win&&best("battle",wins);
+    later(()=>resultView({mode:"battle",score:res.win?"勝ち!":"負け…",label:res.why,
+      title:res.win?(R===RIVALS[2]?"サイゼ最強の給仕":R===RIVALS[1]?"常連キラー":"おもてなし上手"):"",isBest,
+      lines:[`<div><span>送った注文</span><span>${sent}品</span></div>`,`<div><span>通算の勝ち</span><span>${wins}勝</span></div>`],
+      shareText:res.win?`サイゼの番号注文バトルで「${R.name}」に勝利!${res.why}`:`サイゼの番号注文バトルで「${R.name}」に負けた…${res.why}`}),900);
+  }
 }
 
 home();
