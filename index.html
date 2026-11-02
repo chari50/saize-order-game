@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>サイゼ注文マスター</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
 <meta name="description" content="サイゼリヤの注文番号を覚えて、連続注文に挑むファンメイドの非公式ゲーム">
 <style>
 :root{
@@ -164,12 +166,112 @@ h2.sec{font-size:13px;color:var(--muted);margin:6px 2px -4px;font-weight:bold;le
 .blur .so-num,.blur .hand{filter:blur(1.2px)}
 .log{font-size:12px;color:var(--muted);min-height:1.5em;text-align:center}
 footer{font-size:11px;color:var(--muted);text-align:center;line-height:1.6}
+
+/* ===== デザイン調整(全体) ===== */
+:root{--bg:#f4efe6;--paper:#fffdf9;--ink:#24201b;--muted:#776e63;--line:#e7dfd1;--green:#1f6b45;--red:#b8322a;--gold:#b0852b;--tint:#eef4ef;--shadow:0 1px 2px rgba(40,30,20,.05),0 6px 16px rgba(40,30,20,.05)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#171513;--paper:#221f1c;--ink:#f1ebe1;--muted:#a99e90;--line:#38332d;--green:#46a874;--red:#e06155;--gold:#d6aa4e;--tint:#1d2a22;--shadow:none}}
+:root[data-theme="dark"]{--bg:#171513;--paper:#221f1c;--ink:#f1ebe1;--muted:#a99e90;--line:#38332d;--green:#46a874;--red:#e06155;--gold:#d6aa4e;--tint:#1d2a22;--shadow:none}
+html,body{font-family:"Noto Sans JP","Hiragino Sans",system-ui,sans-serif;font-feature-settings:"palt";letter-spacing:.01em}
+#app{gap:14px;padding:14px 16px 32px}
+.flag{height:3px;border-radius:2px;opacity:.9}
+header h1{font-weight:900;letter-spacing:.02em}
+.i{flex:none;vertical-align:-.2em}
+.ib{display:inline-flex;align-items:center;gap:6px}
+.card,.mode,.tile,.theme,.hero,.fighter,.choices button,.vs button,.hand div{border:1px solid var(--line);box-shadow:var(--shadow);border-radius:16px}
+.btn{border-width:1px;border-radius:12px;box-shadow:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;min-height:48px}
+.btn.primary{box-shadow:0 2px 0 rgba(0,0,0,.12)}
+.btn.ghost{background:var(--paper);border-color:var(--line);color:var(--ink);font-weight:500}
+.mode{padding:14px;gap:14px}
+.mode .no{font:700 12px "Roboto Mono",ui-monospace,monospace;letter-spacing:.06em;color:var(--red);background:rgba(184,50,42,.08);border:none;border-radius:999px;padding:6px 10px;min-width:0}
+.mode b{font-weight:700;font-size:15px;margin-bottom:2px}
+.mode.main{border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset,var(--shadow)}
+.mode .av,.tile .ic,.theme .ti{display:flex;align-items:center;justify-content:center;border-radius:12px;background:var(--tint);color:var(--green)}
+.mode .av{width:48px;height:48px;flex:none}
+.tile .ic{width:44px;height:44px;margin-bottom:8px}
+.tile.big .ic{width:52px;height:52px;background:var(--green);color:#fff}
+.tile{padding:14px}
+.tile.big{border-color:var(--line);box-shadow:var(--shadow)}
+.tile em{color:var(--gold)}
+.theme{padding:10px 12px}
+.theme .ti{width:38px;height:38px;grid-row:1/3}
+.theme.on{border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset}
+.theme.on .ti{background:var(--green);color:#fff}
+.theme i{height:3px}
+.hero{padding:16px;border-radius:20px}
+.ring{background:conic-gradient(var(--green) calc(var(--p)*1%),var(--line) 0)}
+.ring b{font-family:"Roboto Mono",monospace;font-weight:700}
+.tag{border-color:var(--line);background:var(--paper)}
+.snd{color:var(--muted);border-radius:10px}
+h2.sec{font-size:12px;letter-spacing:.14em;margin:8px 2px -2px}
+.stars{display:inline-flex;gap:1px;color:var(--line)}
+.stars .on{color:var(--gold);fill:var(--gold)}
+.i.fill{fill:currentColor}
+.i.gold{color:var(--gold)}
+.fav .i{color:var(--muted)}.fav.on .i{color:var(--red)}
+.fav{display:inline-flex;align-items:center;gap:5px;border-width:1px}
+#lives{display:inline-flex;gap:2px;color:var(--red)}
+.people{display:flex;gap:6px;color:var(--muted)}
+.ask{font-weight:700;font-size:22px;letter-spacing:.01em}
+.customer{font-size:12px;letter-spacing:.04em}
+.hud{font-size:14px}
+.hud .btn{min-height:36px}
+.result .big{font-family:"Roboto Mono",monospace;font-weight:700;font-size:52px}
+.result .title{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--gold);background:rgba(176,133,43,.08)}
+.flash .cd,.lines code,.book code,.rule code,.mode .no{font-family:"Roboto Mono",ui-monospace,monospace}
+.memo{display:inline-flex;align-items:center;gap:6px}
+.fighter b.ib{font-size:13px}
+.choices button{font-weight:500}
+.vs button{font-weight:700}
+.timebar{height:6px}
+footer{line-height:1.7;padding-top:4px}
+.mode span{display:block;line-height:1.55;margin-top:2px}
+.mode .best{margin-top:6px}
+.card{line-height:1.7}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <div id="fx" class="fx"></div>
 <script>
+/* ===== アイコン(線画SVG。絵文字は使わない) ===== */
+const ICONS={
+ timer:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6M12 2v3"/>',
+ glass:'<path d="M7 3h10l-.6 5.2A4.4 4.4 0 0 1 12 12a4.4 4.4 0 0 1-4.4-3.8z"/><path d="M12 12v8M8 21h8M7.4 7h9.2"/>',
+ bottle:'<path d="M10 2h4v4l1.5 2.5V21a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1V8.5L10 6z"/><path d="M8.5 12h7"/>',
+ coin:'<circle cx="12" cy="12" r="9"/><path d="M8.5 7.5 12 12l3.5-4.5M12 12v5.5M9 12.5h6M9 15h6"/>',
+ hash:'<path d="M5 9h15M4 15h15M10 3 8 21M16 3l-2 18"/>',
+ users:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.2A5 5 0 0 1 21 19"/>',
+ user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>',
+ pudding:'<path d="M6 18 8 8h8l2 10z"/><path d="M8 8c0-2.2 1.8-4 4-4s4 1.8 4 4M4 18h16"/>',
+ scale:'<path d="M12 3v18M7 21h10M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/>',
+ book:'<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M8 7h7M8 11h5"/>',
+ sound:'<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>',
+ mute:'<path d="M4 9v6h4l5 4V5L8 9z"/><path d="m17 9 5 6M22 9l-5 6"/>',
+ star:'<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>',
+ crown:'<path d="m3 8 4.5 4L12 5l4.5 7L21 8l-2 11H5z"/><path d="M5 19h14"/>',
+ heart:'<path d="M12 20s-7.5-4.6-9.2-9.3C1.7 7.6 3.9 4.5 7 4.5c2 0 3.6 1.2 5 3 1.4-1.8 3-3 5-3 3.1 0 5.3 3.1 4.2 6.2C19.5 15.4 12 20 12 20z"/>',
+ pen:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
+ plate:'<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3.5"/><path d="M2 4v6M2 7h0M22 4v16"/>',
+ leaf:'<path d="M5 19c0-8 5-14 15-15-1 10-7 15-15 15z"/><path d="M5 19 13 11"/>',
+ drumstick:'<path d="M15.5 4.5a5 5 0 0 1 4 4c.5 3-2 6-5 6.5l-3 .5-4 4a2 2 0 1 1-3-3l4-4 .5-3c.5-3 3.5-5.5 6.5-5z"/>',
+ pizza:'<path d="M3 6c5.5-3 12.5-3 18 0L12 21z"/><circle cx="10" cy="9" r="1"/><circle cx="14" cy="12" r="1"/><circle cx="12" cy="15.5" r=".8"/>',
+ fork:'<path d="M7 3v6a2 2 0 0 0 4 0V3M9 3v18M17 3c-2 2-2.5 5-2.5 8h3V21"/>',
+ steak:'<path d="M4 13c0-5 4-8 9-8 4.5 0 7 2.5 7 6 0 4-3.5 6-6 6-1.5 0-2.5 1.5-4 2.5S4 19 4 13z"/><circle cx="13" cy="11" r="2"/>',
+ briefcase:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18"/>',
+ cane:'<circle cx="11" cy="5" r="2.5"/><path d="M11 8v6l-3 7M11 14l3 7M8 11h6M17 10v11M17 10a2 2 0 0 0-2-2"/>',
+ car:'<path d="M3 16v-4l2-5h14l2 5v4z"/><path d="M3 12h18"/><circle cx="7" cy="16.5" r="1.8"/><circle cx="17" cy="16.5" r="1.8"/>',
+ cake:'<path d="M4 21V12h16v9zM4 15.5c2 1.5 4 1.5 5.3 0 1.4 1.5 4 1.5 5.4 0 1.3 1.5 3.3 1.5 5.3 0M12 12V8M12 5.5v0"/><path d="M12 3.5c1 1 1 2-0 2.5-1-.5-1-1.5 0-2.5z"/>',
+ stroller:'<path d="M4 5h3l2 9h10l2-6H9"/><circle cx="10" cy="19" r="1.8"/><circle cx="17" cy="19" r="1.8"/>',
+ grape:'<circle cx="9" cy="10" r="2.2"/><circle cx="15" cy="10" r="2.2"/><circle cx="12" cy="14" r="2.2"/><circle cx="9" cy="18" r="0"/><circle cx="12" cy="18.5" r="2.2"/><path d="M12 7.8V3M12 4c2-1.5 4-1 5 0"/>',
+ books:'<path d="M4 4h4v16H4zM9.5 4h4v16h-4zM15 5l3.8-1 3 15-3.8 1z"/>',
+ mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/>',
+ chef:'<path d="M7 14v6h10v-6M7 14a4 4 0 0 1-.7-7.9A5 5 0 0 1 12 3a5 5 0 0 1 5.7 3.1A4 4 0 0 1 17 14zM7 17h10"/>',
+ cart:'<path d="M3 4h2.5l2.2 11h10.6L20.5 7H7"/><circle cx="9" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/>',
+ check:'<path d="m5 12.5 4.5 4.5L19 7"/>',
+};
+function ic(name,size=20,cls=""){return `<svg class="i ${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]||""}</svg>`}
+const starsN=(n,max)=>`<span class="stars">${Array.from({length:max},(_,i)=>ic("star",14,i<n?"on":"")).join("")}</span>`;
+
 /* ===== メニューデータ =====
  出典: サイゼリヤ公式サイト「人気メニュー」https://www.saizeriya.co.jp/menu-popular/ ほか各商品ページ
  価格: 2026-10-29 価格改定後の掲載価格(税込・最低価格「〜」)。2026-11-02 確認。
@@ -317,7 +419,7 @@ const LV_MAX=3;
 const lv=()=>store("learn")||{};
 const setLv=(code,v)=>{const o=lv();o[code]=Math.max(0,Math.min(LV_MAX,v));store("learn",o)};
 const learnedCount=()=>{const o=lv();return MENU.filter(m=>(o[m.code]||0)>=LV_MAX).length};
-const stars=code=>{const n=lv()[code]||0;return `<span class="stars">${"★".repeat(n)}${"☆".repeat(LV_MAX-n)}</span>`};
+const stars=code=>starsN(lv()[code]||0,LV_MAX);
 /* 覚えていない品ほど出やすくする */
 function pickToLearn(exclude,pool=MENU){const o=lv();pool=pool.length>1?pool.filter(m=>m!==exclude):pool;const w=pool.map(m=>1+(LV_MAX-(o[m.code]||0))*3);
   let r=Math.random()*w.reduce((a,b)=>a+b,0);for(let i=0;i<pool.length;i++){r-=w[i];if(r<=0)return pool[i]}return pool[0]}
@@ -330,14 +432,14 @@ const ALL=()=>[...MENU,...CUSTOM()];
 const memoOf=code=>(store("memo")||{})[code]||"";
 const myItems=()=>[...MENU.filter(m=>favs().includes(m.code)),...CUSTOM()];
 const THEMES=[
-  {id:"mine",name:"マイカード",icon:"⭐",f:null},
-  {id:"all",name:"ぜんぶ",icon:"🍽",f:()=>true},
-  {id:"salad",name:"サラダ・スープ",icon:"🥗",f:m=>m.cat==="サラダ"||m.cat==="スープ"},
-  {id:"app",name:"前菜・おつまみ",icon:"🍗",f:m=>m.cat==="前菜・おつまみ"},
-  {id:"doria",name:"ドリア・ピザ",icon:"🍕",f:m=>m.cat==="ドリア"||m.cat==="ピザ"},
-  {id:"pasta",name:"パスタ",icon:"🍝",f:m=>m.cat==="パスタ"},
-  {id:"meat",name:"肉料理",icon:"🍖",f:m=>m.cat==="肉料理"},
-  {id:"drink",name:"デザート・ドリンク",icon:"🍷",f:m=>m.cat==="デザート"||m.cat==="ワイン・ドリンク"},
+  {id:"mine",name:"マイカード",icon:"star",f:null},
+  {id:"all",name:"ぜんぶ",icon:"plate",f:()=>true},
+  {id:"salad",name:"サラダ・スープ",icon:"leaf",f:m=>m.cat==="サラダ"||m.cat==="スープ"},
+  {id:"app",name:"前菜・おつまみ",icon:"drumstick",f:m=>m.cat==="前菜・おつまみ"},
+  {id:"doria",name:"ドリア・ピザ",icon:"pizza",f:m=>m.cat==="ドリア"||m.cat==="ピザ"},
+  {id:"pasta",name:"パスタ",icon:"fork",f:m=>m.cat==="パスタ"},
+  {id:"meat",name:"肉料理",icon:"steak",f:m=>m.cat==="肉料理"},
+  {id:"drink",name:"デザート・ドリンク",icon:"glass",f:m=>m.cat==="デザート"||m.cat==="ワイン・ドリンク"},
 ];
 const themeItems=t=>t.id==="mine"?myItems():MENU.filter(t.f);
 const themeLearned=t=>{const o=lv();return themeItems(t).filter(m=>(o[m.code]||0)>=LV_MAX).length};
@@ -346,16 +448,16 @@ function learn(){
   clearTimers();
   const n=learnedCount(),done=store("cleared")||{};
   app.innerHTML=`<div class="flag"></div><header><h1>番号をおぼえる<small>テーマを選んで、覚える→練習→テスト</small></h1><button class="btn ghost" style="width:auto" id="back">もどる</button></header>
-  <div class="card"><div class="hud"><span>覚えた品(★3つ)</span><span>${n} / ${MENU.length}品</span></div><div class="prog" style="margin-top:6px"><i style="width:${n/MENU.length*100}%"></i></div></div>
+  <div class="card"><div class="hud"><span>覚えた品(星3つで完了)</span><span>${n} / ${MENU.length}品</span></div><div class="prog" style="margin-top:6px"><i style="width:${n/MENU.length*100}%"></i></div></div>
   <div class="themes">${THEMES.map(t=>{const all=themeItems(t).length,k=themeLearned(t);return `<button class="theme ${t===THEME?"on":""}" data-t="${t.id}">
-    <span class="ti">${t.icon}</span><b>${t.name}</b><small>${t.id==="mine"&&!all?"まだ0枚":k+"/"+all+"品"}${done[t.id]?" 👑":""}</small><i style="width:${all?k/all*100:0}%"></i></button>`}).join("")}</div>
-  <button class="btn ${THEME.id==="mine"?"primary":"ghost"}" id="mine">⭐ マイカードを作る・編集する</button>
-  <div class="card" style="padding:10px 14px"><b>${THEME.icon} ${THEME.name}</b> <span class="muted">${themeItems(THEME).length}品 ${themeItems(THEME).slice(0,4).map(m=>m.name).join("・")}${themeItems(THEME).length>4?"…":""}</span></div>
+    <span class="ti">${ic(t.icon,22)}</span><b>${t.name}</b><small>${t.id==="mine"&&!all?"まだ0枚":k+"/"+all+"品"}${done[t.id]?" "+ic("crown",13,"gold"):""}</small><i style="width:${all?k/all*100:0}%"></i></button>`}).join("")}</div>
+  <button class="btn ${THEME.id==="mine"?"primary":"ghost"}" id="mine">${ic("star",18)} マイカードを作る・編集する</button>
+  <div class="card" style="padding:10px 14px"><b class="ib">${ic(THEME.icon,18)} ${THEME.name}</b> <span class="muted">${themeItems(THEME).length}品 ${themeItems(THEME).slice(0,4).map(m=>m.name).join("・")}${themeItems(THEME).length>4?"…":""}</span></div>
   <div class="modes">
     <button class="mode" id="l1"><div class="no">STEP1</div><div><b>番号のしくみ</b><span>上2けたでジャンルがわかる。まず全体像をつかむ。</span></div></button>
     <button class="mode" id="l2"><div class="no">STEP2</div><div><b>暗記カード</b><span>選んだテーマの料理名を見て番号を思い出す。</span></div></button>
     <button class="mode" id="l3"><div class="no">STEP3</div><div><b>入力して練習</b><span>時間制限なし。ヒントあり。まちがえた品はくり返し出る。</span></div></button>
-    <button class="mode main" id="l4"><div class="no">TEST</div><div><b>テーマ別テスト</b><span>書き取り・4択・番号あてのミックス10問。満点で👑</span></div></button>
+    <button class="mode main" id="l4"><div class="no">TEST</div><div><b>テーマ別テスト</b><span>書き取り・4択・番号あてのミックス10問。満点で王冠</span></div></button>
   </div>
   <button class="btn ghost" id="reset">覚えた記録をリセット</button>`;
   $("#back").onclick=home;$("#l1").onclick=learnRules;$("#mine").onclick=myEditor;
@@ -371,17 +473,17 @@ function myEditor(){
   const f=favs(),cu=store("custom")||[],memo=store("memo")||{};
   const cats=[...new Set(MENU.map(m=>m.cat))];
   app.innerHTML=`<header><h1>マイカード<small>好きな料理の番号を、確実に覚えよう</small></h1><button class="btn ghost" style="width:auto" id="back">もどる</button></header>
-  <div class="card"><b>① メニューから選ぶ</b><p class="muted" style="margin:4px 0 8px">♡をタップすると、マイカードに入ります。</p>
-    <div class="favlist">${cats.map(c=>`<div class="cat">${c}</div>`+MENU.filter(m=>m.cat===c).map(m=>`<button class="fav ${f.includes(m.code)?"on":""}" data-f="${m.code}"><span>${f.includes(m.code)?"♥":"♡"}</span>${m.name}</button>`).join("")).join("")}</div></div>
+  <div class="card"><b>① メニューから選ぶ</b><p class="muted" style="margin:4px 0 8px">ハートをタップすると、マイカードに入ります。</p>
+    <div class="favlist">${cats.map(c=>`<div class="cat">${c}</div>`+MENU.filter(m=>m.cat===c).map(m=>`<button class="fav ${f.includes(m.code)?"on":""}" data-f="${m.code}">${ic("heart",14,f.includes(m.code)?"fill":"")}${m.name}</button>`).join("")).join("")}</div></div>
   <div class="card"><b>② 自分でカードを作る</b><p class="muted" style="margin:4px 0 8px">このゲームに入っていない料理も、メニューブックを見て追加できます。</p>
     <label class="fl">料理名<input id="cn" maxlength="30" placeholder="例: ポップコーンシュリンプ"></label>
     <label class="fl">番号(4けた)<input id="cc" inputmode="numeric" maxlength="4" placeholder="例: 1234"></label>
     <label class="fl">覚え方メモ(なくてもOK)<input id="cm" maxlength="40" placeholder="例: いつも最初に頼むやつ"></label>
     <div class="muted err" id="cerr">&nbsp;</div>
     <button class="btn primary" id="cadd">カードを追加</button>
-    <div class="lines" style="max-height:none">${cu.map((c,i)=>`<div><code>${esc(c.code)}</code><span>${esc(c.name)}${c.memo?`<br><small class="muted">📝 ${esc(c.memo)}</small>`:""}</span><button class="del" data-d="${i}">削除</button></div>`).join("")}</div></div>
+    <div class="lines" style="max-height:none">${cu.map((c,i)=>`<div><code>${esc(c.code)}</code><span>${esc(c.name)}${c.memo?`<br><small class="muted">メモ: ${esc(c.memo)}</small>`:""}</span><button class="del" data-d="${i}">削除</button></div>`).join("")}</div></div>
   <div class="card"><b>③ 選んだ料理に覚え方メモ</b><p class="muted" style="margin:4px 0 8px">暗記カードの答えといっしょに表示されます。</p>
-    ${MENU.filter(m=>f.includes(m.code)).map(m=>`<label class="fl">${m.code} ${m.name}<input data-memo="${m.code}" maxlength="40" value="${esc(memo[m.code]||"")}" placeholder="例: ドリアは21!"></label>`).join("")||'<div class="muted">①で♡を付けると、ここにメモ欄が出ます。</div>'}</div>
+    ${MENU.filter(m=>f.includes(m.code)).map(m=>`<label class="fl">${m.code} ${m.name}<input data-memo="${m.code}" maxlength="40" value="${esc(memo[m.code]||"")}" placeholder="例: ドリアは21!"></label>`).join("")||'<div class="muted">①でハートを付けると、ここにメモ欄が出ます。</div>'}</div>
   <button class="btn primary" id="go">マイカードで覚える(${myItems().length}枚)</button>`;
   $("#back").onclick=learn;
   app.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{const c=b.dataset.f,l=favs();const i=l.indexOf(c);i>=0?l.splice(i,1):l.push(c);store("favs",l);play(i>=0?"tap":"cart");keep(myEditor)});
@@ -391,7 +493,7 @@ function myEditor(){
     const name=$("#cn").value.trim(),code=$("#cc").value.trim(),m=$("#cm").value.trim();const err=t=>{$("#cerr").textContent=t;play("ng")};
     if(!name)return err("料理名を入れてください");
     if(!/^\d{4}$/.test(code))return err("番号は4けたの数字で入れてください");
-    const off=MENU.find(x=>x.code===code||x.later===code);if(off)return err(`${code}は「${off.name}」としてもう入っています。①で♡を付けてください`);
+    const off=MENU.find(x=>x.code===code||x.later===code);if(off)return err(`${code}は「${off.name}」としてもう入っています。①でハートを付けてください`);
     const l=store("custom")||[];if(l.some(x=>x.code===code))return err(`${code}はもうマイカードにあります`);
     l.push({code,name,memo:m});store("custom",l);if(m){const o=store("memo")||{};o[code]=m;store("memo",o)}
     play("cart");keep(myEditor);
@@ -417,14 +519,14 @@ function learnRules(){
 }
 function learnCards(){
   clearTimers();let cur=null,shown=false,count=0;const pool=themeItems(THEME);
-  app.innerHTML=`${hud(THEME.icon+" 暗記カード",`<span id="cnt">0枚</span>`)}
+  app.innerHTML=`${hud(ic(THEME.icon,18)+" 暗記カード",`<span id="cnt">0枚</span>`)}
   <div class="card flash" id="fc"></div>
   <div class="row"><button class="btn" id="no">まだ</button><button class="btn primary" id="yes">覚えた</button></div>
   <p class="muted" style="text-align:center">カードをタップすると番号が出ます</p>`;
   $("#quit").onclick=learn;
   const next=()=>{cur=pickToLearn(cur,pool);shown=false;draw()};
   const draw=()=>{$("#fc").innerHTML=`<div class="muted">${cur.cat}</div><div class="nm">${cur.name}</div>
-    <div class="cd">${shown?cur.code:"????"}</div>${shown&&cur.later?`<div class="muted">食後に頼むなら ${cur.later}</div>`:""}${shown&&cur.price?`<div class="muted">${yen(cur.price)}〜</div>`:""}${shown&&memoOf(cur.code)?`<div class="memo">📝 ${esc(memoOf(cur.code))}</div>`:""}<div>${stars(cur.code)}</div>`;
+    <div class="cd">${shown?cur.code:"????"}</div>${shown&&cur.later?`<div class="muted">食後に頼むなら ${cur.later}</div>`:""}${shown&&cur.price?`<div class="muted">${yen(cur.price)}〜</div>`:""}${shown&&memoOf(cur.code)?`<div class="memo">${ic("pen",14)} ${esc(memoOf(cur.code))}</div>`:""}<div>${stars(cur.code)}</div>`;
     $("#cnt").textContent=count+"枚"};
   $("#fc").onclick=()=>{shown=true;draw()};
   $("#yes").onclick=()=>{if(!shown){shown=true;draw();return}setLv(cur.code,(lv()[cur.code]||0)+1);count++;next()};
@@ -433,7 +535,7 @@ function learnCards(){
 }
 function learnPractice(){
   clearTimers();let q=null,hint=0,ok=0,total=0;const pool=themeItems(THEME);
-  app.innerHTML=`${hud(THEME.icon+" 入力して練習",`<span id="sc">0/0</span>`)}
+  app.innerHTML=`${hud(ic(THEME.icon,18)+" 入力して練習",`<span id="sc">0/0</span>`)}
   <div class="card"><div class="customer" id="cat"></div><div class="ask" id="ask"></div>
   <div class="row" style="align-items:center"><div id="st"></div><button class="btn ghost" style="width:auto;padding:6px 12px" id="hint">ヒント</button></div>
   <div class="muted" id="msg">&nbsp;</div></div><div id="padw"></div>`;
@@ -443,7 +545,7 @@ function learnPractice(){
   $("#padw").appendChild(orderPad(v=>{
     total++;
     if(v===q.code){ok++;const up=hint?0:1;setLv(q.code,(lv()[q.code]||0)+up);fx(hint?"正解(ヒントあり)":"正解!","var(--green)");buzz(15);
-      $("#msg").innerHTML=`${q.code} ${q.name} ${up?"★+1":""}`;}
+      $("#msg").innerHTML=`${q.code} ${q.name} ${up?"星+1":""}`;}
     else{setLv(q.code,(lv()[q.code]||0)-1);fx("ちがいます","var(--red)");buzz([40,40]);
       const m=MENU.find(x=>x.code===v);$("#msg").innerHTML=`正しくは <b style="color:var(--red)">${q.code}</b>${m?`(${v}は${m.name})`:""}`;}
     $("#sc").textContent=`${ok}/${total}`;next();
@@ -456,7 +558,7 @@ function learnTest(){
   const pool=themeItems(THEME),N=10;let i=0,score=0,wrong=[];
   const qs=[];for(let k=0;k<N;k++){const m=pool[k%pool.length];const types=["write","write","choice"];if(m.later)types.push("later");qs.push({m,type:rnd(types)})}
   shuffle(qs);
-  app.innerHTML=`${hud(THEME.icon+" テスト",`<span id="n">1/${N}</span>`)}<div id="body"></div>`;
+  app.innerHTML=`${hud(ic(THEME.icon,18)+" テスト",`<span id="n">1/${N}</span>`)}<div id="body"></div>`;
   $("#quit").onclick=learn;
   const done=ok=>{const q=qs[i];if(q.answered)return;q.answered=true;if(ok){score++;setLv(q.m.code,(lv()[q.m.code]||0)+1);fx("正解!","var(--green)");buzz(15)}else{wrong.push(q.m);setLv(q.m.code,(lv()[q.m.code]||0)-1);fx("ざんねん","var(--red)");buzz([40,40])}
     i++;later(()=>i<N?show():end(),700)};
@@ -477,10 +579,10 @@ function learnTest(){
   show();
   function end(){
     const perfect=score===N;play(perfect?"win":"bell");if(perfect){const c=store("cleared")||{};c[THEME.id]=1;store("cleared",c)}
-    const text=encodeURIComponent(`サイゼ番号テスト「${THEME.name}」${N}問中${score}問正解${perfect?"👑":""}\n#サイゼ注文マスター`);
+    const text=encodeURIComponent(`サイゼ番号テスト「${THEME.name}」${N}問中${score}問正解${perfect?"(満点)":""}\n#サイゼ注文マスター`);
     clearTimers();
-    app.innerHTML=`<div class="flag"></div><div class="card result"><div class="muted">${THEME.icon} ${THEME.name} テスト</div>
-      <div class="big">${score}/${N}</div>${perfect?`<div class="title">${THEME.name} 制覇 👑</div>`:""}
+    app.innerHTML=`<div class="flag"></div><div class="card result"><div class="muted">${THEME.name} テスト</div>
+      <div class="big">${score}/${N}</div>${perfect?`<div class="title">${ic("crown",16)} ${THEME.name} 制覇</div>`:""}
       <div class="lines" style="text-align:left;max-height:none">${wrong.length?"<div class='muted'>復習しよう</div>"+[...new Set(wrong)].map(m=>`<div><code>${m.code}${m.later?"/"+m.later:""}</code><span>${m.name}</span></div>`).join(""):""}</div></div>
       <div class="row"><button class="btn primary" id="again">もう一回</button><button class="btn" id="back">学習メニューへ</button></div>
       <a class="btn ghost" style="text-align:center;text-decoration:none;display:block" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text=${text}">結果をXでシェア</a>`;
@@ -498,21 +600,21 @@ const MODES=[
   {id:"dessert",no:"3906",name:"デザートは「すぐ」か「あとで」",desc:"プリンやティラミスは食後なら別の番号。ベテラン店員の知識を試す。",unit:"問"},
   {id:"hilo",no:"0320",name:"どっちが高い?",desc:"2品を見て、高いほうを選ぶ。連続正解に挑戦。",unit:"連続"},
 ];
-const ICON={rush:"⏱",battle:"🍷",budget:"💴",reverse:"🔢",group:"👨‍👩‍👧",dessert:"🍮",hilo:"⚖️"};
+const ICON={rush:"timer",battle:"glass",budget:"coin",reverse:"hash",group:"users",dessert:"pudding",hilo:"scale"};
 const SHORT={rush:"番号を連続で注文",battle:"CPUを酔わせて満腹に",budget:"1000円ぴったり注文",reverse:"番号から料理を4択",group:"全員分を覚えて注文",dessert:"食後デザートの番号",hilo:"高いのはどっち?"};
 const bestText=m=>{const b=store("best:"+m.id);if(b==null)return "";return m.id==="rush"?b+"品":m.low?b+"円差":b+(m.unit||"")};
 function home(){
   clearTimers();app.classList.remove("blur");
   const n=learnedCount(),pct=Math.round(n/MENU.length*100);
   const tile=(id,big)=>{const m=MODES.find(x=>x.id===id),bt=bestText(m);return `<button class="tile ${big?"big":""}" data-m="${id}">
-    <span class="ic">${ICON[id]}</span><b>${m.name}</b><small>${SHORT[id]}</small>${bt?`<em>ベスト ${bt}</em>`:""}</button>`};
+    <span class="ic">${ic(ICON[id],big?26:22)}</span><b>${m.name}</b><small>${SHORT[id]}</small>${bt?`<em>ベスト ${bt}</em>`:""}</button>`};
   app.innerHTML=`<div class="flag"></div>
-  <header class="top"><h1>サイゼ注文マスター</h1><span class="tag">非公式</span><button class="snd" id="snd" aria-label="効果音">${MUTED?"🔇":"🔊"}</button></header>
+  <header class="top"><h1>サイゼ注文マスター</h1><span class="tag">非公式</span><button class="snd" id="snd" aria-label="効果音">${ic(MUTED?"mute":"sound",22)}</button></header>
   <section class="hero">
     <div class="ring" style="--p:${pct}"><div><b>${n}</b><small>/${MENU.length}品</small></div></div>
     <div class="hero-r"><div class="muted">${n===0?"はじめての人は、まず番号をおぼえよう":n<MENU.length?"覚えた番号":"全品の番号を覚えました!"}</div>
-      <button class="btn primary" id="learn">${n===0?"番号をおぼえる":"続きをおぼえる"}<small> ${THEME.icon} ${THEME.name}</small></button>
-      <button class="btn ghost slim" id="book">📖 メニュー帳</button></div>
+      <button class="btn primary" id="learn">${n===0?"番号をおぼえる":"続きをおぼえる"}<small> ${THEME.name}</small></button>
+      <button class="btn ghost slim" id="book">${ic("book",18)} メニュー帳</button></div>
   </section>
   <h2 class="sec">あそぶ</h2>
   <div class="tiles two">${tile("rush",1)}${tile("battle",1)}</div>
@@ -521,7 +623,7 @@ function home(){
   <footer>メニュー名・番号・価格は株式会社サイゼリヤ公式サイトの掲載情報(${MENU_AS_OF})より。価格は税込の最低価格で、店舗や改定で変わります。<br>本作は非公式のファンゲームで、株式会社サイゼリヤとは関係ありません。</footer>`;
   app.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>({rush,budget,reverse,group,dessert,hilo,battle})[b.dataset.m]());
   $("#book").onclick=book;$("#learn").onclick=learn;
-  $("#snd").onclick=()=>{MUTED=!MUTED;store("muted",MUTED);$("#snd").textContent=MUTED?"🔇":"🔊";if(!MUTED)play("bell")};
+  $("#snd").onclick=()=>{MUTED=!MUTED;store("muted",MUTED);$("#snd").innerHTML=ic(MUTED?"mute":"sound",22);if(!MUTED)play("bell")};
 }
 function book(){
   clearTimers();
@@ -634,21 +736,21 @@ function group(){
   let size=2,cleared=0,lives=3;
   const round=()=>{
     const people=shuffle(MENU).slice(0,size);const need=people.map(m=>m.code);let got=[];
-    app.innerHTML=`${hud(`${size}名さま`,`${"❤".repeat(lives)}`)}
+    app.innerHTML=`${hud(`${size}名さま`,`<span id="lives">${ic("heart",16,"fill").repeat(lives)}</span>`)}
     <div class="card" id="memo"><div class="customer">注文を覚えてください(あと<span id="cd">${size+2}</span>秒で聞こえなくなります)</div>
     <div class="lines" style="max-height:none;font-size:17px">${people.map((m,k)=>`<div><span>${k+1}人目:${m.name}</span></div>`).join("")}</div></div>
     <div id="padw" class="hidden"></div><div class="card hidden" id="got"><div class="customer">書いた番号</div><div class="lines" id="gl"></div></div>`;
     bindQuit();
     let c=size+2;const cd=every(()=>{c--;const el=$("#cd");if(el)el.textContent=c;if(c<=0){clearInterval(cd);start()}},1000);
     function start(){
-      $("#memo").innerHTML=`<div class="customer">それでは注文用紙に書いてください(順番は自由・${size}品)</div><div class="ask">${people.map((_,k)=>"🧑").join(" ")}</div>`;
+      $("#memo").innerHTML=`<div class="customer">それでは注文用紙に書いてください(順番は自由・${size}品)</div><div class="ask"><span class="people">${people.map(()=>ic("user",28)).join("")}</span></div>`;
       $("#padw").classList.remove("hidden");$("#got").classList.remove("hidden");
       $("#padw").appendChild(orderPad(v=>{
         const idx=need.indexOf(v);
         if(idx>=0){need.splice(idx,1);got.push(MENU.find(m=>m.code===v));fx("はい!","var(--green)");buzz(10);
           $("#gl").innerHTML=got.map(m=>`<div><code>${m.code}</code><span>${m.name}</span></div>`).join("");
           if(!need.length){cleared=size;size++;later(round,600)}}
-        else{lives--;fx("それは頼んでない…","var(--red)");buzz([40,40,40]);if(lives<=0)later(()=>end(people),500);else $(".hud span:last-child").textContent="❤".repeat(lives)}
+        else{lives--;fx("それは頼んでない…","var(--red)");buzz([40,40,40]);if(lives<=0)later(()=>end(people),500);else $("#lives").innerHTML=ic("heart",16,"fill").repeat(lives)}
       }));
     }
   };
@@ -704,29 +806,29 @@ function hilo(){
 /* ===== 7. 酔わせて満腹バトル =====
  ゲーム上の数値(満腹・酔い)は遊び用の設定で、実際の量やカロリーではない */
 const FULL={"サラダ":8,"スープ":10,"前菜・おつまみ":12,"ドリア":22,"ピザ":24,"パスタ":26,"肉料理":30,"デザート":6};
-const effect=m=>/^510/.test(m.code)?{self:true,drunk:-30,full:5,label:"ドリンクバーで酔いざまし"}:/^341/.test(m.code)?{drunk:45,full:4,label:"🍾 酔い+45"}:/^34/.test(m.code)?{drunk:20,full:2,label:"🍷 酔い+20"}:{full:FULL[m.cat]||10,label:"🍽 満腹+"+(FULL[m.cat]||10)};
+const effect=m=>/^510/.test(m.code)?{self:true,drunk:-30,full:5,label:"ドリンクバーで酔いざまし"}:/^341/.test(m.code)?{drunk:45,full:4,label:"酔い+45"}:/^34/.test(m.code)?{drunk:20,full:2,label:"酔い+20"}:{full:FULL[m.cat]||10,label:"満腹+"+(FULL[m.cat]||10)};
 /* 対戦相手はすべて大人。lv=強さ(★)、speed=相手が料理を送る間隔(ms)、fullCap=満腹の上限、
    drunkRes=酔いやすさ(1が標準、小さいほどお酒に強い)、noDrink=お酒を飲まない、
    favor=相手が送ってきやすい品、favorP=その確率、heal=自分の酔いざましをする酔いの度合い */
 const RIVALS=[
-  {lv:1,name:"仕事帰りの会社員",icon:"💼",speed:5000,fullCap:100,note:"疲れていて手がおそい。まずはこの人で練習",title:"おつかれさまの給仕"},
-  {lv:1,name:"のんびり老夫婦",icon:"👵",speed:5400,fullCap:80,drunkRes:1.3,note:"少食でお酒にも弱め。やさしく満腹に",title:"孝行ホール係"},
-  {lv:2,name:"ハンドルキーパー",icon:"🚗",speed:4300,fullCap:120,noDrink:true,note:"車で来たのでお酒は飲まない。料理だけで勝負",title:"安全運転の味方"},
-  {lv:2,name:"女子会の幹事",icon:"🍰",speed:4000,fullCap:110,favor:["3201","3206"],favorP:.5,note:"デザートを次々送ってくる。デザートは軽めなので落ち着いて",title:"デザートの守り手"},
-  {lv:2,name:"子連れのパパ",icon:"🧸",speed:3900,fullCap:110,heal:40,note:"すぐドリンクバーで回復する。満腹で押し切ろう",title:"ファミリーの味方"},
-  {lv:3,name:"ワイン通のソムリエ",icon:"🍇",speed:3800,fullCap:110,drunkRes:.4,favor:["3401","3402"],favorP:.6,note:"お酒にとても強く、ワインを送ってくる。酔いざましを忘れずに",title:"ソムリエ泣かせ"},
-  {lv:3,name:"深夜の大学院生",icon:"📚",speed:3600,fullCap:130,favor:["2101"],favorP:.6,note:"ミラノ風ドリアばかり送ってくる。満腹に注意",title:"ドリア研究家"},
-  {lv:3,name:"サイゼ飲みの常連",icon:"🍷",speed:3400,fullCap:140,drunkRes:.6,note:"お酒に強い。まず満腹に",title:"常連キラー"},
-  {lv:4,name:"食べ放題ハンター",icon:"🍖",speed:4200,fullCap:200,favor:["2402","2406","2407"],favorP:.5,note:"胃袋が底なし。肉料理を送ってくる長期戦",title:"胃袋ハンター"},
-  {lv:4,name:"宴会部長",icon:"🎤",speed:3000,fullCap:130,drunkRes:.8,favor:["3401","3402"],favorP:.5,note:"乾杯の手が止まらない。こちらが先に酔わないように",title:"宴会を制す者"},
-  {lv:4,name:"大食いの店長候補",icon:"👨‍🍳",speed:2600,fullCap:120,note:"手が速い。番号を速く正確に",title:"サイゼ最強の給仕"},
-  {lv:5,name:"伝説のサイゼリアン",icon:"👑",speed:2200,fullCap:160,drunkRes:.7,heal:60,note:"全番号を暗記した伝説の客。最強",title:"伝説を超えた者"},
+  {lv:1,name:"仕事帰りの会社員",icon:"briefcase",speed:5000,fullCap:100,note:"疲れていて手がおそい。まずはこの人で練習",title:"おつかれさまの給仕"},
+  {lv:1,name:"のんびり老夫婦",icon:"cane",speed:5400,fullCap:80,drunkRes:1.3,note:"少食でお酒にも弱め。やさしく満腹に",title:"孝行ホール係"},
+  {lv:2,name:"ハンドルキーパー",icon:"car",speed:4300,fullCap:120,noDrink:true,note:"車で来たのでお酒は飲まない。料理だけで勝負",title:"安全運転の味方"},
+  {lv:2,name:"女子会の幹事",icon:"cake",speed:4000,fullCap:110,favor:["3201","3206"],favorP:.5,note:"デザートを次々送ってくる。デザートは軽めなので落ち着いて",title:"デザートの守り手"},
+  {lv:2,name:"子連れのパパ",icon:"stroller",speed:3900,fullCap:110,heal:40,note:"すぐドリンクバーで回復する。満腹で押し切ろう",title:"ファミリーの味方"},
+  {lv:3,name:"ワイン通のソムリエ",icon:"grape",speed:3800,fullCap:110,drunkRes:.4,favor:["3401","3402"],favorP:.6,note:"お酒にとても強く、ワインを送ってくる。酔いざましを忘れずに",title:"ソムリエ泣かせ"},
+  {lv:3,name:"深夜の大学院生",icon:"books",speed:3600,fullCap:130,favor:["2101"],favorP:.6,note:"ミラノ風ドリアばかり送ってくる。満腹に注意",title:"ドリア研究家"},
+  {lv:3,name:"サイゼ飲みの常連",icon:"glass",speed:3400,fullCap:140,drunkRes:.6,note:"お酒に強い。まず満腹に",title:"常連キラー"},
+  {lv:4,name:"食べ放題ハンター",icon:"steak",speed:4200,fullCap:200,favor:["2402","2406","2407"],favorP:.5,note:"胃袋が底なし。肉料理を送ってくる長期戦",title:"胃袋ハンター"},
+  {lv:4,name:"宴会部長",icon:"mic",speed:3000,fullCap:130,drunkRes:.8,favor:["3401","3402"],favorP:.5,note:"乾杯の手が止まらない。こちらが先に酔わないように",title:"宴会を制す者"},
+  {lv:4,name:"大食いの店長候補",icon:"chef",speed:2600,fullCap:120,note:"手が速い。番号を速く正確に",title:"サイゼ最強の給仕"},
+  {lv:5,name:"伝説のサイゼリアン",icon:"crown",speed:2200,fullCap:160,drunkRes:.7,heal:60,note:"全番号を暗記した伝説の客。最強",title:"伝説を超えた者"},
 ];
 function battle(){
   clearTimers();
   app.innerHTML=`<div class="flag"></div><header><h1>酔わせて満腹バトル<small>番号で注文して、相手のテーブルに届けよう</small></h1></header>
   <div class="card" style="font-size:14px;line-height:1.7">・手札の3品から好きな料理の<b>番号</b>を書くと、相手に届きます<br>・料理で<b>満腹</b>、グラスワインで<b>酔い</b>がたまり、どちらかが満タンでダウン<br>・相手も一定時間ごとに料理を送ってきます<br>・<b>5101 ドリンクバー</b>は自分の酔いざまし<br>・番号をまちがえると、その料理を自分で食べることに…<br>・酔うと注文パッドの数字がばらばらに!</div>
-  <div class="modes">${RIVALS.map((r,i)=>`<button class="mode" data-r="${i}"><div class="no" style="font-size:26px">${r.icon}</div><div><b>${r.name}</b><span>${r.note}</span><div class="best">${"★".repeat(r.lv)}${"☆".repeat(5-r.lv)}${(store("beat")||{})[r.name]?" ・勝利済み":""}</div></div></button>`).join("")}</div>
+  <div class="modes">${RIVALS.map((r,i)=>`<button class="mode" data-r="${i}"><div class="av">${ic(r.icon,26)}</div><div><b>${r.name}</b><span>${r.note}</span><div class="best">${starsN(r.lv,5)}${(store("beat")||{})[r.name]?" ・勝利済み":""}</div></div></button>`).join("")}</div>
   <button class="btn ghost" id="back">もどる</button>
   <footer>お酒は20歳になってから。ゲームの中だけで楽しんでください。</footer>`;
   $("#back").onclick=home;
@@ -739,10 +841,10 @@ function fight(R){
   const deal=()=>{let m;do m=rnd(pool());while(hand.some(h=>h.code===m.code));return m};
   let hand=[];for(let i=0;i<3;i++)hand.push(deal());
   if(!R.noDrink&&!hand.some(h=>/^34/.test(h.code)))hand[2]=MENU.find(m=>m.code==="3401");
-  app.innerHTML=`${hud(R.icon+" VS",`<span id="sc"></span>`)}
+  app.innerHTML=`${hud(ic(R.icon,20)+" VS",`<span id="sc"></span>`)}
   <div class="fighters">
     <div class="fighter" id="fme"><b>あなた</b>${gauges("me")}</div>
-    <div class="fighter" id="fcpu"><b>${R.icon} ${R.name}</b>${gauges("cpu")}</div>
+    <div class="fighter" id="fcpu"><b class="ib">${ic(R.icon,16)} ${R.name}</b>${gauges("cpu")}</div>
   </div>
   <div class="log" id="log">手札から番号を書いて注文!</div>
   <div class="hand" id="hand"></div>
