@@ -116,6 +116,26 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 .theme .ti{grid-row:1/3;font-size:24px}.theme b{font-size:14px}.theme small{color:var(--muted);font-size:11px}
 .theme i{position:absolute;left:0;bottom:0;height:4px;background:var(--gold)}
 .theme.on{border-color:var(--green);background:rgba(31,122,63,.08)}
+header.top{justify-content:flex-start;gap:8px}
+header.top h1{font-size:22px}
+.tag{font-size:11px;border:1px solid var(--muted);color:var(--muted);border-radius:999px;padding:1px 8px}
+.hero{display:flex;gap:16px;align-items:center;background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+.ring{flex:none;width:96px;height:96px;border-radius:50%;background:conic-gradient(var(--gold) calc(var(--p)*1%),var(--line) 0);display:flex;align-items:center;justify-content:center}
+.ring>div{width:76px;height:76px;border-radius:50%;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.ring b{font-size:28px}.ring small{font-size:11px;color:var(--muted);margin-top:2px}
+.hero-r{flex:1;display:flex;flex-direction:column;gap:8px;min-width:0}
+.hero-r .btn small{font-weight:normal;font-size:12px;opacity:.85}
+.btn.slim{padding:8px}
+h2.sec{font-size:13px;color:var(--muted);margin:6px 2px -4px;font-weight:bold;letter-spacing:.08em}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.tile{position:relative;background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:12px;text-align:left;display:flex;flex-direction:column;gap:2px;box-shadow:var(--shadow);min-height:96px}
+.tile .ic{font-size:26px;line-height:1.1}
+.tile b{font-size:14px;line-height:1.3}
+.tile small{font-size:11px;color:var(--muted)}
+.tile em{font-style:normal;font-size:11px;color:var(--gold);font-weight:bold;margin-top:auto}
+.tile.big{border-color:var(--green);min-height:120px}
+.tile.big .ic{font-size:32px}.tile.big b{font-size:15px}
+.tile:active{transform:translateY(1px)}
 .hidden{display:none!important}
 .fighters{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .fighter{background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:8px;font-size:12px}
@@ -389,15 +409,27 @@ const MODES=[
   {id:"dessert",no:"3906",name:"デザートは「すぐ」か「あとで」",desc:"プリンやティラミスは食後なら別の番号。ベテラン店員の知識を試す。",unit:"問"},
   {id:"hilo",no:"0320",name:"どっちが高い?",desc:"2品を見て、高いほうを選ぶ。連続正解に挑戦。",unit:"連続"},
 ];
+const ICON={rush:"⏱",battle:"🍷",budget:"💴",reverse:"🔢",group:"👨‍👩‍👧",dessert:"🍮",hilo:"⚖️"};
+const SHORT={rush:"番号を連続で注文",battle:"CPUを酔わせて満腹に",budget:"1000円ぴったり注文",reverse:"番号から料理を4択",group:"全員分を覚えて注文",dessert:"食後デザートの番号",hilo:"高いのはどっち?"};
+const bestText=m=>{const b=store("best:"+m.id);if(b==null)return "";return m.id==="rush"?b+"品":m.low?b+"円差":b+(m.unit||"")};
 function home(){
   clearTimers();app.classList.remove("blur");
+  const n=learnedCount(),pct=Math.round(n/MENU.length*100);
+  const tile=(id,big)=>{const m=MODES.find(x=>x.id===id),bt=bestText(m);return `<button class="tile ${big?"big":""}" data-m="${id}">
+    <span class="ic">${ICON[id]}</span><b>${m.name}</b><small>${SHORT[id]}</small>${bt?`<em>ベスト ${bt}</em>`:""}</button>`};
   app.innerHTML=`<div class="flag"></div>
-  <header><h1>サイゼ注文マスター<small>番号で頼む、あの楽しさをゲームに(ファンメイド・非公式)</small></h1></header>
-  <button class="mode main" id="learn" style="border-color:var(--gold)"><div class="no" style="color:var(--gold);border-color:var(--gold)">STUDY</div><div><b>番号をおぼえる(学習モード)</b><span>番号のしくみ・暗記カード・入力練習</span><div class="best">覚えた品 ${learnedCount()} / ${MENU.length}</div></div></button>
-  <div class="modes">${MODES.map(m=>{const b=store("best:"+m.id);return `<button class="mode ${m.main?"main":""}" data-m="${m.id}">
-    <div class="no">${m.no}</div><div><b>${m.name}</b><span>${m.desc}</span>${b!=null?`<div class="best">自己ベスト ${m.id==="rush"?b+"品":m.low?b+"円差":b+(m.unit||"")}</div>`:""}</div></button>`}).join("")}</div>
-  <button class="btn ghost" id="book">メニュー帳を見る(番号の予習)</button>
-  <footer>メニュー名・番号・価格は株式会社サイゼリヤ公式サイトの掲載情報(${MENU_AS_OF})より。<br>価格は税込の最低価格で、店舗や改定で変わります。本作は非公式のファンゲームです。</footer>`;
+  <header class="top"><h1>サイゼ注文マスター</h1><span class="tag">非公式</span></header>
+  <section class="hero">
+    <div class="ring" style="--p:${pct}"><div><b>${n}</b><small>/${MENU.length}品</small></div></div>
+    <div class="hero-r"><div class="muted">${n===0?"はじめての人は、まず番号をおぼえよう":n<MENU.length?"覚えた番号":"全品の番号を覚えました!"}</div>
+      <button class="btn primary" id="learn">${n===0?"番号をおぼえる":"続きをおぼえる"}<small> ${THEME.icon} ${THEME.name}</small></button>
+      <button class="btn ghost slim" id="book">📖 メニュー帳</button></div>
+  </section>
+  <h2 class="sec">あそぶ</h2>
+  <div class="tiles two">${tile("rush",1)}${tile("battle",1)}</div>
+  <h2 class="sec">ミニゲーム</h2>
+  <div class="tiles">${["budget","reverse","group","dessert","hilo"].map(id=>tile(id)).join("")}</div>
+  <footer>メニュー名・番号・価格は株式会社サイゼリヤ公式サイトの掲載情報(${MENU_AS_OF})より。価格は税込の最低価格で、店舗や改定で変わります。<br>本作は非公式のファンゲームで、株式会社サイゼリヤとは関係ありません。</footer>`;
   app.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>({rush,budget,reverse,group,dessert,hilo,battle})[b.dataset.m]());
   $("#book").onclick=book;$("#learn").onclick=learn;
 }
