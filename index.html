@@ -107,6 +107,11 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 .rule{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:14px;align-items:baseline}
 .rule code{font:bold 18px ui-monospace,Menlo,monospace;color:var(--red)}
 .stars{color:var(--gold);letter-spacing:-2px}
+.themes{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.theme{position:relative;overflow:hidden;background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:10px;text-align:left;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:8px;align-items:center}
+.theme .ti{grid-row:1/3;font-size:24px}.theme b{font-size:14px}.theme small{color:var(--muted);font-size:11px}
+.theme i{position:absolute;left:0;bottom:0;height:4px;background:var(--gold)}
+.theme.on{border-color:var(--green);background:rgba(31,122,63,.08)}
 .hidden{display:none!important}
 .fighters{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .fighter{background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:8px;font-size:12px}
@@ -229,24 +234,42 @@ const setLv=(code,v)=>{const o=lv();o[code]=Math.max(0,Math.min(LV_MAX,v));store
 const learnedCount=()=>{const o=lv();return MENU.filter(m=>(o[m.code]||0)>=LV_MAX).length};
 const stars=code=>{const n=lv()[code]||0;return `<span class="stars">${"★".repeat(n)}${"☆".repeat(LV_MAX-n)}</span>`};
 /* 覚えていない品ほど出やすくする */
-function pickToLearn(exclude){const o=lv();const pool=MENU.filter(m=>m!==exclude);const w=pool.map(m=>1+(LV_MAX-(o[m.code]||0))*3);
+function pickToLearn(exclude,pool=MENU){const o=lv();pool=pool.length>1?pool.filter(m=>m!==exclude):pool;const w=pool.map(m=>1+(LV_MAX-(o[m.code]||0))*3);
   let r=Math.random()*w.reduce((a,b)=>a+b,0);for(let i=0;i<pool.length;i++){r-=w[i];if(r<=0)return pool[i]}return pool[0]}
 const RULES=[
   ["12","サラダ"],["13","スープ"],["14","前菜・おつまみ(温サラダもここ)"],["21","ドリア"],["22","ピザ"],["23","パスタ"],["24","肉料理"],["32","デザート(すぐ)"],["39","デザート(食後に=あとで)"],["34","グラスワイン"],["51","ドリンクバー"]];
+const THEMES=[
+  {id:"all",name:"ぜんぶ",icon:"🍽",f:()=>true},
+  {id:"salad",name:"サラダ・スープ",icon:"🥗",f:m=>m.cat==="サラダ"||m.cat==="スープ"},
+  {id:"app",name:"前菜・おつまみ",icon:"🍗",f:m=>m.cat==="前菜・おつまみ"},
+  {id:"doria",name:"ドリア・ピザ",icon:"🍕",f:m=>m.cat==="ドリア"||m.cat==="ピザ"},
+  {id:"pasta",name:"パスタ",icon:"🍝",f:m=>m.cat==="パスタ"},
+  {id:"meat",name:"肉料理",icon:"🍖",f:m=>m.cat==="肉料理"},
+  {id:"drink",name:"デザート・ドリンク",icon:"🍷",f:m=>m.cat==="デザート"||m.cat==="ワイン・ドリンク"},
+];
+const themeItems=t=>MENU.filter(t.f);
+const themeLearned=t=>{const o=lv();return themeItems(t).filter(m=>(o[m.code]||0)>=LV_MAX).length};
+let THEME=THEMES[0];
 function learn(){
   clearTimers();
-  const n=learnedCount();
-  app.innerHTML=`<div class="flag"></div><header><h1>番号をおぼえる<small>まずはここから。★3つで「覚えた」</small></h1><button class="btn ghost" style="width:auto" id="back">もどる</button></header>
-  <div class="card"><div class="hud"><span>覚えた品</span><span>${n} / ${MENU.length}品</span></div><div class="prog" style="margin-top:6px"><i style="width:${n/MENU.length*100}%"></i></div></div>
+  const n=learnedCount(),done=store("cleared")||{};
+  app.innerHTML=`<div class="flag"></div><header><h1>番号をおぼえる<small>テーマを選んで、覚える→練習→テスト</small></h1><button class="btn ghost" style="width:auto" id="back">もどる</button></header>
+  <div class="card"><div class="hud"><span>覚えた品(★3つ)</span><span>${n} / ${MENU.length}品</span></div><div class="prog" style="margin-top:6px"><i style="width:${n/MENU.length*100}%"></i></div></div>
+  <div class="themes">${THEMES.map(t=>{const all=themeItems(t).length,k=themeLearned(t);return `<button class="theme ${t===THEME?"on":""}" data-t="${t.id}">
+    <span class="ti">${t.icon}</span><b>${t.name}</b><small>${k}/${all}品${done[t.id]?" 👑":""}</small><i style="width:${k/all*100}%"></i></button>`}).join("")}</div>
+  <div class="card" style="padding:10px 14px"><b>${THEME.icon} ${THEME.name}</b> <span class="muted">${themeItems(THEME).length}品 ${themeItems(THEME).slice(0,4).map(m=>m.name).join("・")}${themeItems(THEME).length>4?"…":""}</span></div>
   <div class="modes">
     <button class="mode" id="l1"><div class="no">STEP1</div><div><b>番号のしくみ</b><span>上2けたでジャンルがわかる。まず全体像をつかむ。</span></div></button>
-    <button class="mode" id="l2"><div class="no">STEP2</div><div><b>暗記カード</b><span>料理名を見て番号を思い出す。タップで答え。</span></div></button>
-    <button class="mode main" id="l3"><div class="no">STEP3</div><div><b>入力して練習</b><span>時間制限なし。注文画面で番号を入れて確かめる。ヒントあり。</span></div></button>
+    <button class="mode" id="l2"><div class="no">STEP2</div><div><b>暗記カード</b><span>選んだテーマの料理名を見て番号を思い出す。</span></div></button>
+    <button class="mode" id="l3"><div class="no">STEP3</div><div><b>入力して練習</b><span>時間制限なし。ヒントあり。まちがえた品はくり返し出る。</span></div></button>
+    <button class="mode main" id="l4"><div class="no">TEST</div><div><b>テーマ別テスト</b><span>書き取り・4択・番号あてのミックス10問。満点で👑</span></div></button>
   </div>
   <button class="btn ghost" id="reset">覚えた記録をリセット</button>`;
-  $("#back").onclick=home;$("#l1").onclick=learnRules;$("#l2").onclick=learnCards;$("#l3").onclick=learnPractice;
-  $("#reset").onclick=()=>{if(learnedCount()===0&&!Object.keys(lv()).length)return;store("learn",{});learn()};
+  $("#back").onclick=home;$("#l1").onclick=learnRules;$("#l2").onclick=learnCards;$("#l3").onclick=learnPractice;$("#l4").onclick=learnTest;
+  app.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{THEME=THEMES.find(t=>t.id===b.dataset.t);store("theme",THEME.id);learn()});
+  $("#reset").onclick=()=>{store("learn",{});store("cleared",{});learn()};
 }
+{const saved=store("theme");if(saved)THEME=THEMES.find(t=>t.id===saved)||THEMES[0];}
 function learnRules(){
   clearTimers();
   app.innerHTML=`<header><h1>番号のしくみ</h1><button class="btn ghost" style="width:auto" id="back">もどる</button></header>
@@ -262,30 +285,29 @@ function learnRules(){
   $("#back").onclick=learn;$("#go").onclick=learnCards;
 }
 function learnCards(){
-  clearTimers();let cur=null,shown=false,count=0;
-  app.innerHTML=`${hud("暗記カード",`<span id="cnt">0枚</span>`)}
+  clearTimers();let cur=null,shown=false,count=0;const pool=themeItems(THEME);
+  app.innerHTML=`${hud(THEME.icon+" 暗記カード",`<span id="cnt">0枚</span>`)}
   <div class="card flash" id="fc"></div>
   <div class="row"><button class="btn" id="no">まだ</button><button class="btn primary" id="yes">覚えた</button></div>
   <p class="muted" style="text-align:center">カードをタップすると番号が出ます</p>`;
   $("#quit").onclick=learn;
-  const next=()=>{cur=pickToLearn(cur);shown=false;draw()};
+  const next=()=>{cur=pickToLearn(cur,pool);shown=false;draw()};
   const draw=()=>{$("#fc").innerHTML=`<div class="muted">${cur.cat}</div><div class="nm">${cur.name}</div>
     <div class="cd">${shown?cur.code:"????"}</div>${shown&&cur.later?`<div class="muted">食後に頼むなら ${cur.later}</div>`:""}${shown&&cur.price?`<div class="muted">${yen(cur.price)}〜</div>`:""}<div>${stars(cur.code)}</div>`;
     $("#cnt").textContent=count+"枚"};
   $("#fc").onclick=()=>{shown=true;draw()};
   $("#yes").onclick=()=>{if(!shown){shown=true;draw();return}setLv(cur.code,(lv()[cur.code]||0)+1);count++;next()};
   $("#no").onclick=()=>{if(!shown){shown=true;draw();return}setLv(cur.code,(lv()[cur.code]||0)-1);count++;next()};
-  window.onkeydown=e=>{if(e.key===" ")$("#fc").onclick()};
   next();
 }
 function learnPractice(){
-  clearTimers();let q=null,hint=0,ok=0,total=0;
-  app.innerHTML=`${hud("入力して練習",`<span id="sc">0/0</span>`)}
+  clearTimers();let q=null,hint=0,ok=0,total=0;const pool=themeItems(THEME);
+  app.innerHTML=`${hud(THEME.icon+" 入力して練習",`<span id="sc">0/0</span>`)}
   <div class="card"><div class="customer" id="cat"></div><div class="ask" id="ask"></div>
   <div class="row" style="align-items:center"><div id="st"></div><button class="btn ghost" style="width:auto;padding:6px 12px" id="hint">ヒント</button></div>
   <div class="muted" id="msg">&nbsp;</div></div><div id="padw"></div>`;
   $("#quit").onclick=learn;
-  const next=()=>{q=pickToLearn(q);hint=0;$("#cat").textContent=q.cat;$("#ask").textContent=q.name;$("#st").innerHTML=stars(q.code)};
+  const next=()=>{q=pickToLearn(q,pool);hint=0;$("#cat").textContent=q.cat;$("#ask").textContent=q.name;$("#st").innerHTML=stars(q.code)};
   $("#hint").onclick=()=>{hint=Math.min(3,hint+1);$("#msg").innerHTML=`ヒント: <b style="color:var(--red)">${q.code.slice(0,hint)}${"□".repeat(4-hint)}</b>`};
   $("#padw").appendChild(orderPad(v=>{
     total++;
@@ -296,6 +318,43 @@ function learnPractice(){
     $("#sc").textContent=`${ok}/${total}`;next();
   },{confirm:true}));
   next();
+}
+/* テーマ別テスト: 書き取り / 番号→料理4択 / 食後デザート を混ぜて10問 */
+function learnTest(){
+  clearTimers();
+  const pool=themeItems(THEME),N=10;let i=0,score=0,wrong=[];
+  const qs=[];for(let k=0;k<N;k++){const m=pool[k%pool.length];const types=["write","write","choice"];if(m.later)types.push("later");qs.push({m,type:rnd(types)})}
+  shuffle(qs);
+  app.innerHTML=`${hud(THEME.icon+" テスト",`<span id="n">1/${N}</span>`)}<div id="body"></div>`;
+  $("#quit").onclick=learn;
+  const done=ok=>{const q=qs[i];if(q.answered)return;q.answered=true;if(ok){score++;setLv(q.m.code,(lv()[q.m.code]||0)+1);fx("正解!","var(--green)");buzz(15)}else{wrong.push(q.m);setLv(q.m.code,(lv()[q.m.code]||0)-1);fx("ざんねん","var(--red)");buzz([40,40])}
+    i++;later(()=>i<N?show():end(),700)};
+  function show(){
+    const q=qs[i];$("#n").textContent=`${i+1}/${N}`;window.onkeydown=null;
+    if(q.type==="choice"){
+      const others=shuffle(MENU.filter(m=>m!==q.m&&(pool.length>=4?pool.includes(m):true))).slice(0,3);
+      const opts=shuffle([q.m,...others]);
+      $("#body").innerHTML=`<div class="card" style="text-align:center"><div class="customer">この番号の料理は?</div><div class="cd" style="font:bold 44px ui-monospace,Menlo,monospace;color:var(--red);margin:8px 0">${q.m.code}</div></div>
+      <div class="choices">${opts.map(o=>`<button data-c="${o.code}">${o.name}</button>`).join("")}</div>`;
+      $("#body").querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{$("#body").querySelectorAll("[data-c]").forEach(x=>{x.onclick=null;if(x.dataset.c===q.m.code)x.classList.add("right");else if(x===b)x.classList.add("wrong")});done(b.dataset.c===q.m.code)});
+    }else{
+      const isLater=q.type==="later";const ans=isLater?q.m.later:q.m.code;
+      $("#body").innerHTML=`<div class="card"><div class="customer">${isLater?"食後にお持ちする番号で":"番号を入力"}</div><div class="ask">${q.m.name}${isLater?'<small>(食後に)</small>':""}</div><div class="muted" id="msg">&nbsp;</div></div><div id="padw"></div>`;
+      $("#padw").appendChild(orderPad(v=>{if(v!==ans)$("#msg").innerHTML=`正しくは <b style="color:var(--red)">${ans}</b>`;done(v===ans)}));
+    }
+  }
+  show();
+  function end(){
+    const perfect=score===N;if(perfect){const c=store("cleared")||{};c[THEME.id]=1;store("cleared",c)}
+    const text=encodeURIComponent(`サイゼ番号テスト「${THEME.name}」${N}問中${score}問正解${perfect?"👑":""}\n#サイゼ注文マスター`);
+    clearTimers();
+    app.innerHTML=`<div class="flag"></div><div class="card result"><div class="muted">${THEME.icon} ${THEME.name} テスト</div>
+      <div class="big">${score}/${N}</div>${perfect?`<div class="title">${THEME.name} 制覇 👑</div>`:""}
+      <div class="lines" style="text-align:left;max-height:none">${wrong.length?"<div class='muted'>復習しよう</div>"+[...new Set(wrong)].map(m=>`<div><code>${m.code}${m.later?"/"+m.later:""}</code><span>${m.name}</span></div>`).join(""):""}</div></div>
+      <div class="row"><button class="btn primary" id="again">もう一回</button><button class="btn" id="back">学習メニューへ</button></div>
+      <a class="btn ghost" style="text-align:center;text-decoration:none;display:block" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text=${text}">結果をXでシェア</a>`;
+    $("#again").onclick=learnTest;$("#back").onclick=learn;
+  }
 }
 
 /* ===== ホーム ===== */
